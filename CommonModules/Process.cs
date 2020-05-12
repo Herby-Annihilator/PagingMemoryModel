@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using SimpleModel.PagingModel;
 
 namespace CommonModules
 {
@@ -29,12 +30,17 @@ namespace CommonModules
         /// </summary>
         public int UsedMemory { get; private set; }
 
-        public Process(int memory, int pid)
+        public Process(int memory, int pid, ref PageTable pageTable)
         {
             AvailableMemory = memory;
             PID = pid;
             Status = Status.Queue;
+            PageTable = pageTable;
         }
+        /// <summary>
+        /// Ссылка на таблицу страниц данного процесса
+        /// </summary>
+        public PageTable PageTable { get; set; }
 
     }
     /// <summary>

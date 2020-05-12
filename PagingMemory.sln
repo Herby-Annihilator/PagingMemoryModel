@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimpleModel", "SimpleModel\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CommonModules", "CommonModules\CommonModules.csproj", "{3FDE6675-C43A-4A17-B9A3-B1AEE79BFC94}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SystemModel", "SystemModel\SystemModel.csproj", "{5AFB0E75-385A-4ECE-A45A-88E5A99D875C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{3FDE6675-C43A-4A17-B9A3-B1AEE79BFC94}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3FDE6675-C43A-4A17-B9A3-B1AEE79BFC94}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3FDE6675-C43A-4A17-B9A3-B1AEE79BFC94}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5AFB0E75-385A-4ECE-A45A-88E5A99D875C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5AFB0E75-385A-4ECE-A45A-88E5A99D875C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5AFB0E75-385A-4ECE-A45A-88E5A99D875C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5AFB0E75-385A-4ECE-A45A-88E5A99D875C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

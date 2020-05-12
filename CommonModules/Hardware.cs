@@ -10,7 +10,7 @@ namespace CommonModules
     /// <summary>
     /// Простейшая модель железа в компьютере (самое нужное для лабы)
     /// </summary>
-    class Hardware
+    public class Hardware
     {
         /// <summary>
         /// Число слотов для оперативки
@@ -75,7 +75,7 @@ namespace CommonModules
         /// </summary>
         public ROM[] ROMs { get; set; }
 
-        public Hardware(RAM[] rams, ROM[] roms, CPU cpu)
+        public Hardware(ref RAM[] rams, ref ROM[] roms, CPU cpu)
         {
             RAMs = rams;
             ROMs = roms;
@@ -102,6 +102,43 @@ namespace CommonModules
         }
 
         public CPU CPU { get; set; }
+
+
+        /// <summary>
+        /// Вернет конкретную "физическую плашку" и смещение в ней (блок по 32 бита). В случае отсутствия памяти выдаст исключение.
+        /// Метод гарантирует, что в памяти есть свободный блок указанного размера (если не выдает исключения)
+        /// </summary>
+        /// <param name="countOfSlots">Число блоков по 32 бита</param>
+        /// <param name="offset">смещение внутри физической плашки</param>
+        /// <returns></returns>
+        public ref BitArray[] GetFreeMemoryBlock(int countOfSlots, out UInt32 offset)
+        {
+            BitArray bitArray = new BitArray(32);
+            int currentFreeBlocks = 0;
+            
+            for (int i = 0; i < RamSlotsNumber; i++)
+            {
+                offset = 0;
+                for (uint j = 0; j < RAMs[i].ByteCells.Length; j++)
+                {
+                    if (RAMs[i].ByteCells[j] == bitArray)
+                    {
+                        currentFreeBlocks++;
+                    }
+                    else
+                    {
+                        currentFreeBlocks = 0;
+                    }
+                    if (currentFreeBlocks == countOfSlots)
+                    {
+                        offset = j;
+                        return ref RAMs[i].ByteCells;
+                    }
+                }
+            }
+
+            throw new OutOfMemoryException();
+        }
     }
 
     /// <summary>
@@ -110,18 +147,36 @@ namespace CommonModules
     class RAM
     {
         /// <summary>
+        /// Физический адрес начала данного блока оперативки
+        /// </summary>
+        public UInt32 PhisicalAdress { get; set; }
+        /// <summary>
+        /// Разрядность
+        /// </summary>
+        int BitDepth { get; set; }
+        /// <summary>
         /// Размер плашки в байтах
         /// </summary>
         int Size { get; set; }
         /// <summary>
-        /// "Физическая плашка"
+        /// "Физическая плашка" - разделена на отрезки размером с разрядность
         /// </summary>
-        public byte[] ByteCells;
-
-        public RAM(int size)
+        public BitArray[] ByteCells;
+        /// <summary>
+        /// Создает физическую память указанного размера - кратно 32
+        /// </summary>
+        /// <param name="size">размер в байтах</param>
+        /// <param name="adress">адрес начала физического блока</param>
+        public RAM(int size, UInt32 adress)
         {
+            PhisicalAdress = adress;
             Size = size;
-            ByteCells = new byte[Size];
+            int count = Size / BitDepth;
+            ByteCells = new BitArray[count];
+            for (int i = 0; i < count; i++)
+            {
+                ByteCells[i] = new BitArray(BitDepth);
+            }
         }
     }
 
@@ -191,5 +246,8 @@ namespace CommonModules
             bits = new BitArray(bitsCount);
         }
     }
+
+
+   
 
 }
