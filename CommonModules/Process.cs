@@ -10,6 +10,10 @@ namespace CommonModules
     public class Process
     {
         /// <summary>
+        /// Имя процесса
+        /// </summary>
+        string Name { get; set; }
+        /// <summary>
         /// PID
         /// </summary>
         public int PID { get; set; }

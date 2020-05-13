@@ -144,7 +144,7 @@ namespace CommonModules
     /// <summary>
     /// Оперативная память
     /// </summary>
-    class RAM
+    public class RAM
     {
         /// <summary>
         /// Физический адрес начала данного блока оперативки
@@ -183,7 +183,7 @@ namespace CommonModules
     /// <summary>
     /// Постоянная память
     /// </summary>
-    class ROM
+    public class ROM
     {
         /// <summary>
         /// Тип накопителя
@@ -203,7 +203,7 @@ namespace CommonModules
     /// <summary>
     /// Тип накопителя
     /// </summary>
-    enum ROMType
+    public enum ROMType
     {
         SSD,
         HDD,
@@ -226,7 +226,7 @@ namespace CommonModules
         }
     }
 
-    class Registr
+    public class Registr
     {
         private BitArray bits;
         /// <summary>

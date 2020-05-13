@@ -156,7 +156,7 @@ namespace CommonModules
 
         private ref BitArray[] GetNextFreePage(ref BitArray[] startArray, uint startIndex, out uint endIndex)
         {
-            hardware.
+            
         }
 
 

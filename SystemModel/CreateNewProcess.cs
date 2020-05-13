@@ -11,23 +11,17 @@ using CommonModules;
 
 namespace SystemModel
 {
-    public partial class MainForm : Form
+    public partial class CreateNewProcess : Form
     {
-        /// <summary>
-        /// OS
-        /// </summary>
-        public  OS OS { get; set; }
-
-        public Hardware Hardware { get; set; }
-
-        public MainForm()
+        public CreateNewProcess()
         {
             InitializeComponent();
         }
 
-        private void labelTableAdress_Click(object sender, EventArgs e)
+        private void buttonCreate_Click(object sender, EventArgs e)
         {
-
+            
         }
+
     }
 }
