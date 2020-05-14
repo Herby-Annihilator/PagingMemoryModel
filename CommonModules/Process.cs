@@ -34,8 +34,9 @@ namespace CommonModules
         /// </summary>
         public int UsedMemory { get; private set; }
 
-        public Process(int memory, int pid, ref PageTable pageTable)
+        public Process(int memory, int pid, int priority, ref PageTable pageTable)
         {
+            Priority = priority;
             AvailableMemory = memory;
             PID = pid;
             Status = Status.Queue;

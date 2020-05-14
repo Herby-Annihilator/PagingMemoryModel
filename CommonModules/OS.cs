@@ -87,29 +87,27 @@ namespace CommonModules
         /// Создает новый процесс
         /// </summary>
         /// <param name="memory">количество требуемой памяти в байтах</param>
-        public void CreateNewProcess(int memory)
+        public void CreateNewProcess(int memory, int prioryty)
         {
             int pid = 0;
 
             // вычислить размер таблицы - количество страниц для храненния таблицы
-            int pageCountForTable = PageNumberForTable(memory);
+            int pageCountForTable = PageNumberForTable(memory * 2);
             try
             {
                 BitArray[] ram = hardware.GetFreeMemoryBlock((pageCountForTable * pageSize) / (bitDepth / 8), out uint offset);
                 //**********************
-                PageTable pageTable = new PageTable(offset, ref ram);
+                PageTable pageTable = new PageTable(offset, ref ram, pageCountForTable);
                 //***********************
 
                 pid = CreateRandomPid();
-
+                processes.Add(new Process(memory, pid, prioryty, ref pageTable));
             }
             catch (OutOfMemoryException e)
             {
                 Console.WriteLine("\nПамять для процесса не была выделена");
                 Console.ReadKey(true);
             }
-
-            processes.Add(new Process(memory, pid));
         }
         /// <summary>
         /// Вернет количество страниц для хранения таблицы страниц для данного процесса
