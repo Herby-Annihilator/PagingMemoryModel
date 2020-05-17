@@ -12,7 +12,7 @@ namespace CommonModules
         /// <summary>
         /// Имя процесса
         /// </summary>
-        string Name { get; set; }
+        public string Name { get; set; }
         /// <summary>
         /// PID
         /// </summary>
@@ -34,8 +34,9 @@ namespace CommonModules
         /// </summary>
         public int UsedMemory { get; private set; }
 
-        public Process(int memory, int pid, int priority, ref PageTable pageTable)
+        public Process(string name, int memory, int pid, int priority, ref PageTable pageTable)
         {
+            Name = name;
             Priority = priority;
             AvailableMemory = memory;
             PID = pid;

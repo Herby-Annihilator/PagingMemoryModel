@@ -87,7 +87,7 @@ namespace CommonModules
         /// Создает новый процесс
         /// </summary>
         /// <param name="memory">количество требуемой памяти в байтах</param>
-        public void CreateNewProcess(int memory, int prioryty)
+        public void CreateNewProcess(string name, int memory, int prioryty)
         {
             int pid = 0;
 
@@ -95,18 +95,75 @@ namespace CommonModules
             int pageCountForTable = PageNumberForTable(memory * 2);
             try
             {
-                BitArray[] ram = hardware.GetFreeMemoryBlock((pageCountForTable * pageSize) / (bitDepth / 8), out uint offset);
+                //BitArray[] ram = hardware.GetFreeMemoryBlock((pageCountForTable * pageSize) / (bitDepth / 8), out uint offset);
                 //**********************
+
+                // получить блок свободных страниц
+
                 PageTable pageTable = new PageTable(offset, ref ram, pageCountForTable);
                 //***********************
 
                 pid = CreateRandomPid();
-                processes.Add(new Process(memory, pid, prioryty, ref pageTable));
+                processes.Add(new Process(name, memory, pid, prioryty, ref pageTable));
             }
             catch (OutOfMemoryException e)
             {
                 Console.WriteLine("\nПамять для процесса не была выделена");
                 Console.ReadKey(true);
+            }
+        }
+        private BitArray[] GetFreePages(int[] indexesInFreePageList, out uint offset)
+        {
+
+        }
+        /// <summary>
+        /// Возвращает массив номеров элементов списка FreePages. Эти элементы по своему значению идут единым блоком (по порядку).
+        /// Вроде бы работает, но это не точно.
+        /// </summary>
+        /// <param name="pageCount">количество страниц, которые должны быть единым блоком</param>
+        /// <returns></returns>
+        private int[] GetFreePageIndexesInListOfPages(int pageCount)
+        {
+            // Условие - список страниц всегда упорядочен по возрастанию
+            if (pageCount == 1)
+            {
+                return new int[] { 0 };
+            }
+            else
+            {
+                bool isCorrect = false;
+                int numberOfRealyFreePages = 1;
+                int currentFreePageIndex = FreePages[0];
+                int[] freePageIndexes = new int[pageCount];
+                freePageIndexes[0] = 0;
+                for (int i = 1; i < FreePages.Count; i++)
+                {
+                    if (FreePages[i] - currentFreePageIndex == 1)
+                    {
+                        freePageIndexes[numberOfRealyFreePages] = i;
+                        numberOfRealyFreePages++;
+                        currentFreePageIndex = FreePages[i];
+                        if (numberOfRealyFreePages == pageCount)
+                        {
+                            isCorrect = true;
+                            break;
+                        }
+                    }
+                    else
+                    {
+                        numberOfRealyFreePages = 1;
+                        currentFreePageIndex = FreePages[i];
+                        freePageIndexes[0] = i;
+                    }
+                }
+                if (!isCorrect)
+                {
+                    return null;
+                }
+                else
+                {
+                    return freePageIndexes;
+                }
             }
         }
         /// <summary>
