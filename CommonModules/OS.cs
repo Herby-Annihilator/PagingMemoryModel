@@ -95,26 +95,54 @@ namespace CommonModules
             int pageCountForTable = PageNumberForTable(memory * 2);
             try
             {
-                //BitArray[] ram = hardware.GetFreeMemoryBlock((pageCountForTable * pageSize) / (bitDepth / 8), out uint offset);
-                //**********************
-
-                // получить блок свободных страниц
-
-                PageTable pageTable = new PageTable(offset, ref ram, pageCountForTable);
-                //***********************
-
+                BitArray[] bits = GetFreePages(GetFreePageIndexesInListOfPages(pageCountForTable), out uint offset);
+                PageTable pageTable = new PageTable(offset, ref bits, pageCountForTable);
                 pid = CreateRandomPid();
+                //
+                // инициализировать таблицу страниц
+                //
                 processes.Add(new Process(name, memory, pid, prioryty, ref pageTable));
+                //
+                // создать файл на диске, отвечающий за данный процесс
+                //
             }
             catch (OutOfMemoryException e)
             {
-                Console.WriteLine("\nПамять для процесса не была выделена");
+                Console.WriteLine(e.Message);
                 Console.ReadKey(true);
             }
         }
-        private BitArray[] GetFreePages(int[] indexesInFreePageList, out uint offset)
+        /// <summary>
+        /// Получает ссылку на массив BitArray[] (физическая память) и смещение в этой памяти, с которого начинается свободный блок
+        /// памяти размером в указанное количество страниц. В случае неудачи выкидывает исключение OutOfMemoryException.
+        /// </summary>
+        /// <param name="indexesInFreePageList"></param>
+        /// <param name="offset"></param>
+        /// <returns></returns>
+        private ref BitArray[] GetFreePages(int[] indexesInFreePageList, out uint offset)
         {
-
+            uint firstPageAdress = (uint)indexesInFreePageList[0] * (uint)pageSize;
+            offset = firstPageAdress;
+            for (int i = 0; i < hardware.RAMs.Length; i++)
+            {
+                uint physicalEndAdress = hardware.RAMs[i].PhisicalAdress + (uint)(hardware.RAMs[i].ByteCells.Length * bitDepth / 8);
+                if (firstPageAdress >= hardware.RAMs[i].PhisicalAdress && firstPageAdress < physicalEndAdress)
+                {
+                    uint lastPageAdress = (uint)indexesInFreePageList[indexesInFreePageList.Length - 1] * (uint)pageSize;
+                    //
+                    // это смежные блоки памяти, рсположенные на одной физической плашке
+                    //
+                    if (lastPageAdress >= hardware.RAMs[i].PhisicalAdress && lastPageAdress < physicalEndAdress)
+                    {                      
+                        for (int j = 0; j < indexesInFreePageList.Length; j++)
+                        {
+                            FreePages.Remove(indexesInFreePageList[j]);
+                        }
+                        return ref hardware.RAMs[i].ByteCells;
+                    }
+                }
+            }
+            throw new OutOfMemoryException("В физической памяти данные страницы находятся на разных физических модулях");
         }
         /// <summary>
         /// Возвращает массив номеров элементов списка FreePages. Эти элементы по своему значению идут единым блоком (по порядку).
@@ -208,12 +236,6 @@ namespace CommonModules
             }
             return pid;
         }
-
-        private ref BitArray[] GetNextFreePage(ref BitArray[] startArray, uint startIndex, out uint endIndex)
-        {
-            
-        }
-
 
         // создать механизмы создания файлов в директории для каждого процесса
     }

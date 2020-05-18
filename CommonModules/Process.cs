@@ -42,11 +42,25 @@ namespace CommonModules
             PID = pid;
             Status = Status.Queue;
             PageTable = pageTable;
+            for (int i = 0; i < PageTable.Size; i++)
+            {
+                WSClockEntryMirrors.Add(new WSClockEntryMirror(ref PageTable.PageTableEntries[i]));
+            }
         }
         /// <summary>
         /// Ссылка на таблицу страниц данного процесса
         /// </summary>
         public PageTable PageTable { get; set; }
+
+
+
+        //
+        // Так делать плохо, но вы меня простите - так надо, не могу придумать, куда прикрутить это дело
+        //
+        /// <summary>
+        /// Список записей о страницах рабочего набора. Их зеркала, содержащие время последнего использования.
+        /// </summary>
+        public List<WSClockEntryMirror> WSClockEntryMirrors { get; set; }
 
     }
     /// <summary>
@@ -66,6 +80,49 @@ namespace CommonModules
         /// Завершен
         /// </summary>
         Completed,
+    }
+    /// <summary>
+    /// Зеркало страницы рабочего набора
+    /// </summary>
+    public class WSClockEntryMirror
+    {
+        PageTableEntry PageTableEntry { get; set; }
+        /// <summary>
+        /// Время последнего использования
+        /// </summary>
+        public int LastUseTime { get; set; }
+        /// <summary>
+        /// Бит обращения
+        /// </summary>
+        public bool Referenced
+        {
+            get { return PageTableEntry.Accessed; }
+            set
+            {
+                PageTableEntry.Accessed = value;
+            }
+        }
+        /// <summary>
+        /// Бит изменения
+        /// </summary>
+        public bool Modified
+        {
+            get { return PageTableEntry.Dirty; }
+            set
+            {
+                PageTableEntry.Dirty = value;
+            }
+        }
+        /// <summary>
+        /// Создает новый экземпляр "зеркала страницы рабочего набора"
+        /// </summary>
+        public WSClockEntryMirror(ref PageTableEntry pageTableEntry)
+        {
+            PageTableEntry = pageTableEntry;
+            LastUseTime = 0;
+            Referenced = false;
+            Modified = false;
+        }
     }
 
 }

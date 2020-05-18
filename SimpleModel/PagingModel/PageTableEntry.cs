@@ -11,7 +11,7 @@ namespace SimpleModel.PagingModel
     /// <summary>
     /// Элемент таблицы страниц
     /// </summary>
-    class PageTableEntry
+    public class PageTableEntry
     {
         /// <summary>
         /// Cсылка на существующий кусок памяти

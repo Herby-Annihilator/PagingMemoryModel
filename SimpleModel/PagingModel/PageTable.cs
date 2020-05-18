@@ -28,11 +28,12 @@ namespace SimpleModel.PagingModel
         /// Число записей в таблице
         /// </summary>
         private int entryCount;
+
         /// <summary>
         /// Индекс конца таблицы
         /// </summary>
         public UInt32 EndIndex { get; set; }
-        private PageTableEntry[] pageTableEntries;
+        public PageTableEntry[] PageTableEntries { get; set; }
         /// <summary>
         /// Создает таблицу страниц в памяти, но не инициализиурет адреса, тольк выставляет биты по умолчанию. Если таблица занимает не одну страницу,
         /// то эти страницы должны идти непрерывным блоком, иначе нужные данные просто будут затерты. За это отвечаете Вы.
@@ -47,20 +48,20 @@ namespace SimpleModel.PagingModel
             bitArray = ram;
             EndIndex = startIndex + (uint)(pageCount * 4096);     // нужно умножать на размер страницы, а где его получить? (х его з - надо нормально выстраивать архитектуру)
             entryCount = pageCount * 1024;    // количество записей в таблице (умножаем на 1024 так как в странице размером 4096 байт 32768 бит -> записей по 32 бита будет 1024)
-            pageTableEntries = new PageTableEntry[entryCount];
+            PageTableEntries = new PageTableEntry[entryCount];
             for (int i = 0; i < entryCount; i++)
             {
-                pageTableEntries[i] = new PageTableEntry(ref bitArray[i + startIndex]);
-                pageTableEntries[i].Adress = i;
-                pageTableEntries[i].Accessed = false;
-                pageTableEntries[i].Dirty = false;
-                pageTableEntries[i].GlobalPage = false;
-                pageTableEntries[i].PAT = false;
-                pageTableEntries[i].PCD = true;
-                pageTableEntries[i].Present = false;  // по умолчанию будет false
-                pageTableEntries[i].PWT = false;
-                pageTableEntries[i].RW = true;
-                pageTableEntries[i].UserSupervisor = true;
+                PageTableEntries[i] = new PageTableEntry(ref bitArray[i + startIndex]);
+                PageTableEntries[i].Adress = i;
+                PageTableEntries[i].Accessed = false;
+                PageTableEntries[i].Dirty = false;
+                PageTableEntries[i].GlobalPage = false;
+                PageTableEntries[i].PAT = false;
+                PageTableEntries[i].PCD = true;
+                PageTableEntries[i].Present = false;  // по умолчанию будет false
+                PageTableEntries[i].PWT = false;
+                PageTableEntries[i].RW = true;
+                PageTableEntries[i].UserSupervisor = true;
             }
         }
         /// <summary>
@@ -71,19 +72,22 @@ namespace SimpleModel.PagingModel
             int entryCount = pageCount * 1024;
             for (int i = 0; i < entryCount; i++)
             {
-                pageTableEntries[i].Adress = 0;
-                pageTableEntries[i].Accessed = false;
-                pageTableEntries[i].Dirty = false;
-                pageTableEntries[i].GlobalPage = false;
-                pageTableEntries[i].PAT = false;
-                pageTableEntries[i].PCD = false;
-                pageTableEntries[i].Present = false;  // по умолчанию будет false
-                pageTableEntries[i].PWT = false;
-                pageTableEntries[i].RW = false;
-                pageTableEntries[i].UserSupervisor = false;
+                PageTableEntries[i].Adress = 0;
+                PageTableEntries[i].Accessed = false;
+                PageTableEntries[i].Dirty = false;
+                PageTableEntries[i].GlobalPage = false;
+                PageTableEntries[i].PAT = false;
+                PageTableEntries[i].PCD = false;
+                PageTableEntries[i].Present = false;  // по умолчанию будет false
+                PageTableEntries[i].PWT = false;
+                PageTableEntries[i].RW = false;
+                PageTableEntries[i].UserSupervisor = false;
             }
         }
-
+        /// <summary>
+        /// Размер таблицы страниц, измеряемый в записях по 32 бита
+        /// </summary>
+        public int Size { get { return PageTableEntries.Length; } }
 
     }
 }
