@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Collections;
 using SimpleModel.PagingModel;
 using System.IO;
+using System.Windows.Forms;
 
 namespace CommonModules
 {
@@ -53,6 +54,8 @@ namespace CommonModules
             }
         }
 
+        public string CurrentDirectoryName { get; set; }
+
         /// <summary>
         /// Конструктор заточен под 32 бита и 4096 размер страниц
         /// </summary>
@@ -80,6 +83,7 @@ namespace CommonModules
             //
 
             Directory.CreateDirectory(Directory.GetCurrentDirectory() + "\\Processies");
+            CurrentDirectoryName = Directory.GetCurrentDirectory() + "\\Processies";
         }
 
 
@@ -100,16 +104,33 @@ namespace CommonModules
                 pid = CreateRandomPid();
                 //
                 // инициализировать таблицу страниц
-                //
+                //               
+                int pageCountToInit = memory / pageSize;
+                if (FreePages.Count >= pageCountToInit)
+                {
+                    for (int i = 0; i < pageCountToInit; i++)
+                    {
+                        pageTable.PageTableEntries[i].Adress = FreePages[0];
+                        FreePages.RemoveAt(0);
+                    }
+                }
+                else
+                {
+                    throw new OutOfMemoryException("Невозможно выделить минимум памяти процессу");
+                }
                 processes.Add(new Process(name, memory, pid, prioryty, ref pageTable));
                 //
                 // создать файл на диске, отвечающий за данный процесс
                 //
+                File.Create(CurrentDirectoryName + processes[processes.Count - 1].Name + ".prc");
             }
             catch (OutOfMemoryException e)
             {
-                Console.WriteLine(e.Message);
-                Console.ReadKey(true);
+                MessageBox.Show(e.Message, "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+            catch(Exception)
+            {
+                MessageBox.Show("Произошло что-то непредвиденное", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
         /// <summary>
@@ -238,5 +259,10 @@ namespace CommonModules
         }
 
         // создать механизмы создания файлов в директории для каждого процесса
+    }
+
+    public class PageFault : System.Exception
+    {
+        public override string Message { get { return "Ошибка доступа к странице"; } }
     }
 }

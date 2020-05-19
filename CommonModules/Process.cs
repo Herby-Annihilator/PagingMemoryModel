@@ -62,6 +62,18 @@ namespace CommonModules
         /// </summary>
         public List<WSClockEntryMirror> WSClockEntryMirrors { get; set; }
 
+        public void AccessPage(int pageNumberInTable, Hardware hardware)
+        {
+            if (PageTable.PageTableEntries[pageNumberInTable].Present == false)
+            {
+                throw new PageFault();
+            }
+            else
+            {
+                //hardware.RAMs
+            }
+        }
+
     }
     /// <summary>
     /// Состояние процесса
