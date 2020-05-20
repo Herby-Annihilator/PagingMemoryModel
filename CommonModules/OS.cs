@@ -12,6 +12,7 @@ namespace CommonModules
 {
     public class OS
     {
+        private int PageMaxAge { get; set; } = 10;
         /// <summary>
         /// Список свободных страниц. Элемент содержит номер свободной страницы и он не обязательно равен индексу
         /// </summary>
@@ -258,11 +259,82 @@ namespace CommonModules
             return pid;
         }
 
+        /// <summary>
+        /// Обрабатывает исключение PageFault алгоритмом WSClock
+        /// </summary>
+        /// <param name="process"></param>
+        /// <param name="pageNumber"></param>
+        public void PageFaultExeptionHandler(Process process, int pageNumber)
+        {
+            if (FreePages.Count > 0)
+            {
+                process.PageTable.PageTableEntries[pageNumber].Present = true;
+                process.PageTable.PageTableEntries[pageNumber].Adress = FreePages[0];
+                FreePages.RemoveAt(0);
+            }
+            else
+            {
+                bool ableToDRemove = false;
+                List<WSClockEntryMirror> removalCandidates = new List<WSClockEntryMirror>();
+                int workingSetPagesNumber = process.WSClockEntryMirrors.Count;
+                for (int i = 0; i < workingSetPagesNumber; i++)
+                {
+                    if (!ableToDRemove)
+                    {
+                        if (process.WSClockEntryMirrors[i].Referenced == true)
+                        {
+                            process.WSClockEntryMirrors[i].Referenced = false;
+                            process.WSClockEntryMirrors[i].LastUseTime = process.CurrentVirtualTime;
+                        }
+                        else if (process.CurrentVirtualTime - process.WSClockEntryMirrors[i].LastUseTime <= PageMaxAge) // это еще рабочий набор
+                        {
+                            removalCandidates.Add(process.WSClockEntryMirrors[i]);
+                        }
+                        else  // можно удалить
+                        {
+                            ableToDRemove = true;
+                            // remove this page
+                            if (process.WSClockEntryMirrors[i].Modified == true)
+                            {
+
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        //
         // создать механизмы создания файлов в директории для каждого процесса
+        //
+        private void WritePageToDrive(string processName, PageTableEntry pageTableEntry, bool rewrite)
+        {
+            if (!rewrite)
+            {
+                
+            }
+        }
+        private void WritePageToDrive(TextWriter writer, PageTableEntry pageTableEntry)
+        {
+            uint adress = (uint)(pageTableEntry.Adress * pageSize);
+            for (int i = 0; i < hardware.RAMs.Length; i++)
+            {
+                uint endPhisycalAdress = hardware.RAMs[i].PhisicalAdress + (uint)(hardware.RAMs[i].ByteCells.Length * (bitDepth / 8));
+                if (adress >= hardware.RAMs[i].PhisicalAdress && adress < endPhisycalAdress)
+                {
+                    uint pageStartIndex = (adress - hardware.RAMs[i].PhisicalAdress) / (uint)(bitDepth / 8);  // стартовый индекс BitArray, с которого начинается страница
+                    uint pageEndIndex = pageStartIndex + (uint)pageSize / 4;   // блоки по 32 бита
+                    for (uint j = pageStartIndex; j < pageEndIndex; j++)
+                    {
+                        // нужен индекс в таблице страниц.
+                    }
+                }
+            }
+        }
     }
 
     public class PageFault : System.Exception
     {
         public override string Message { get { return "Ошибка доступа к странице"; } }
     }
+
 }

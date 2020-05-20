@@ -10,6 +10,10 @@ namespace CommonModules
     public class Process
     {
         /// <summary>
+        /// Текущее виртуальное время
+        /// </summary>
+        public int CurrentVirtualTime { get; set; }
+        /// <summary>
         /// Имя процесса
         /// </summary>
         public string Name { get; set; }
@@ -61,7 +65,12 @@ namespace CommonModules
         /// Список записей о страницах рабочего набора. Их зеркала, содержащие время последнего использования.
         /// </summary>
         public List<WSClockEntryMirror> WSClockEntryMirrors { get; set; }
-
+        /// <summary>
+        /// Метод обращается к памяти. Делает отрицание начала страницы (отрицает первые 32 бита в странице).
+        /// Выкидывает исключение PageFault, если страница в памяти не найдена.
+        /// </summary>
+        /// <param name="pageNumberInTable"></param>
+        /// <param name="hardware"></param>
         public void AccessPage(int pageNumberInTable, Hardware hardware)
         {
             if (PageTable.PageTableEntries[pageNumberInTable].Present == false)
@@ -70,7 +79,16 @@ namespace CommonModules
             }
             else
             {
-                //hardware.RAMs
+                for (int i = 0; i < hardware.RAMs.Length; i++)
+                {
+                    uint endAdress = (uint)(hardware.RAMs[i].PhisicalAdress + hardware.RAMs[i].ByteCells.Length * 4); // потомучто криво и под 32 бита
+                    if (PageTable.PageTableEntries[pageNumberInTable].Adress >= hardware.RAMs[i].PhisicalAdress && PageTable.PageTableEntries[pageNumberInTable].Adress < endAdress)
+                    {
+                        int blockNumber = PageTable.PageTableEntries[pageNumberInTable].Adress / 4;
+                        hardware.RAMs[i].ByteCells[blockNumber].Not();
+                        break;
+                    }
+                }
             }
         }
 
