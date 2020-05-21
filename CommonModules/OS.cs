@@ -274,12 +274,12 @@ namespace CommonModules
             }
             else
             {
-                bool ableToDRemove = false;
+                bool ableToRemove = false;
                 List<WSClockEntryMirror> removalCandidates = new List<WSClockEntryMirror>();
                 int workingSetPagesNumber = process.WSClockEntryMirrors.Count;
                 for (int i = 0; i < workingSetPagesNumber; i++)
                 {
-                    if (!ableToDRemove)
+                    if (!ableToRemove)
                     {
                         if (process.WSClockEntryMirrors[i].Referenced == true)
                         {
@@ -292,7 +292,7 @@ namespace CommonModules
                         }
                         else  // можно удалить
                         {
-                            ableToDRemove = true;
+                            ableToRemove = true;
                             // remove this page
                             if (process.WSClockEntryMirrors[i].Modified == true)
                             {
@@ -306,14 +306,75 @@ namespace CommonModules
         //
         // создать механизмы создания файлов в директории для каждого процесса
         //
-        private void WritePageToDrive(string processName, PageTableEntry pageTableEntry, bool rewrite)
+        /// <summary>
+        /// Записывает страницу процесса на диск. В случае неудачи перезаписи вернет false.
+        /// </summary>
+        /// <param name="processFileName">имя файла, отвечающего за данный процесс</param>
+        /// <param name="pageTableEntry">сведения о странице в таблице страниц</param>
+        /// <param name="pageNumber">номер страницы в таблицы страниц</param>
+        /// <param name="rewrite">Если true, то данные указанной страницы перезаписываются, если false, то данные просто добавляются в конец файла</param>
+        /// <returns></returns>
+        private bool WritePageToDrive(string processFileName, PageTableEntry pageTableEntry, int pageNumber, bool rewrite)
         {
-            if (!rewrite)
+            if (rewrite)
             {
-                
+                StreamWriter writer = new StreamWriter(CurrentDirectoryName + "\\" + "tmp.prc");
+                StreamReader reader = new StreamReader(CurrentDirectoryName + "\\" + processFileName);
+
+                string pageIndexInPageTable;
+                string[] buffer;
+                int number = 0;
+                bool isRewrite = false;
+                while (!reader.EndOfStream)
+                {
+                    if (!isRewrite)
+                    {
+                        pageIndexInPageTable = reader.ReadLine();
+                        buffer = pageIndexInPageTable.Split(new char[] { ' ', '[', ']' }, StringSplitOptions.RemoveEmptyEntries);
+
+                        bool isNumber = false;
+                        for (int i = 0; i < buffer.Length; i++)
+                        {
+                            if (Int32.TryParse(buffer[i], out number))
+                            {
+                                isNumber = true;
+                                break;
+                            }
+                        }
+                        if (!isNumber)
+                        {
+                            return false;
+                        }
+
+                        if (number == pageNumber)
+                        {
+                            WritePageToDrive(writer, pageTableEntry, pageNumber);
+                            isRewrite = true;
+                        }
+                        else
+                        {
+                            writer.Write(reader.ReadLine());
+                        }
+                    }
+                    else
+                    {
+                        writer.Write(reader.ReadToEnd());
+                    }
+                }
+                reader.Close();
+                writer.Close();
+                File.Delete(CurrentDirectoryName + "\\" + processFileName);
+                File.Move(CurrentDirectoryName + "\\" + "tmp.prc", CurrentDirectoryName + "\\" + processFileName);
             }
+            else
+            {
+                StreamWriter writer = new StreamWriter(CurrentDirectoryName + "\\" + processFileName, true);
+                WritePageToDrive(writer, pageTableEntry, pageNumber);
+                writer.Close();
+            }
+            return true;
         }
-        private void WritePageToDrive(TextWriter writer, PageTableEntry pageTableEntry)
+        private void WritePageToDrive(TextWriter writer, PageTableEntry pageTableEntry, int pageIndexInPageTable)
         {
             uint adress = (uint)(pageTableEntry.Adress * pageSize);
             for (int i = 0; i < hardware.RAMs.Length; i++)
@@ -323,12 +384,94 @@ namespace CommonModules
                 {
                     uint pageStartIndex = (adress - hardware.RAMs[i].PhisicalAdress) / (uint)(bitDepth / 8);  // стартовый индекс BitArray, с которого начинается страница
                     uint pageEndIndex = pageStartIndex + (uint)pageSize / 4;   // блоки по 32 бита
+                    writer.WriteLine("[ " + pageIndexInPageTable + " ]");
                     for (uint j = pageStartIndex; j < pageEndIndex; j++)
                     {
-                        // нужен индекс в таблице страниц.
+                        writer.Write(hardware.RAMs[i].ByteCells[j].ToString() + " ");
                     }
+                    writer.WriteLine();
                 }
             }
+        }
+
+        /// <summary>
+        /// Восстанавливает данные страницы с диска. Если не удалось восстановить (не нашлось такой страницы), то вернет false.
+        /// </summary>
+        /// <param name="process">процесс, для которого производится восстановление</param>
+        /// <param name="pageIndexInPageTable">номер записи, которая отвечает за восстанавливаюмую страницу</param>
+        /// <param name="ram">физическая память, нужен соответсвующий массив BitArray[]</param>
+        /// <param name="startBitArrayBlock">Начало страницы, номер блока из 32 битов, номер BitArray(я)</param>
+        /// <param name="newPageAdress">новый физический адрес страницы</param>
+        /// <returns></returns>
+        private bool RestoreProcessPage(ref Process process, int pageIndexInPageTable, ref BitArray[] ram, int startBitArrayBlock, int newPageAdress)
+        {
+            StreamReader reader = new StreamReader(CurrentDirectoryName + "\\" + process.FileName);
+            StreamWriter writer = new StreamWriter(CurrentDirectoryName + "\\" + "tmp.prc");
+            bool deleted = false;
+            string pageNumber;
+            string[] buffer;
+            int number = 0;
+            while (!reader.EndOfStream)
+            {
+                if (!deleted)
+                {
+                    pageNumber = reader.ReadLine();
+                    buffer = pageNumber.Split(new char[] { ' ', '[', ']' }, StringSplitOptions.RemoveEmptyEntries);
+
+                    bool isNumber = false;
+                    for (int i = 0; i < buffer.Length; i++)
+                    {
+                        if (Int32.TryParse(buffer[i], out number))
+                        {
+                            isNumber = true;
+                            break;
+                        }
+                    }
+                    if (!isNumber)
+                    {
+                        return false;
+                    }
+
+                    if (number == pageIndexInPageTable)
+                    {
+                        string[] bitBlocks = reader.ReadLine().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                        process.PageTable.PageTableEntries[pageIndexInPageTable].Adress = newPageAdress;
+                        int endBitArrayBlock = startBitArrayBlock + pageSize / (bitDepth / 8);     // 4096 байт / 4 байта = 128 блоков
+                        int k = 0;
+                        for (int i = startBitArrayBlock; i < endBitArrayBlock; i++)
+                        {
+                            for (int j = 0; i < ram[i].Length; j++)
+                            {
+                                if (bitBlocks[k][j] == '0')
+                                {
+                                    ram[i].Set(j, false);
+                                }
+                                else
+                                {
+                                    ram[i].Set(j, true);
+                                }
+                            }
+                            k++;
+                        }
+                        process.WSClockEntryMirrors.Add(new WSClockEntryMirror(ref process.PageTable.PageTableEntries[pageIndexInPageTable], process.CurrentVirtualTime));
+                        deleted = true;
+                    }
+                    else
+                    {
+                        writer.Write(reader.ReadLine());
+                    }
+                }
+                else
+                {
+                    writer.Write(reader.ReadToEnd());
+                }
+            }
+
+            writer.Close();
+            reader.Close();
+            File.Delete(CurrentDirectoryName + "\\" + process.FileName);
+            File.Move(CurrentDirectoryName + "\\" + "tmp.prc", CurrentDirectoryName + "\\" + process.FileName);
+            return true;
         }
     }
 

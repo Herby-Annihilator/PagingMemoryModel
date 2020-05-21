@@ -18,6 +18,10 @@ namespace CommonModules
         /// </summary>
         public string Name { get; set; }
         /// <summary>
+        /// Имя файла, отвечающего за процесс
+        /// </summary>
+        public string FileName { get; set; }
+        /// <summary>
         /// PID
         /// </summary>
         public int PID { get; set; }
@@ -40,7 +44,9 @@ namespace CommonModules
 
         public Process(string name, int memory, int pid, int priority, ref PageTable pageTable)
         {
+            CurrentVirtualTime = 0;
             Name = name;
+            FileName = Name + ".prc";
             Priority = priority;
             AvailableMemory = memory;
             PID = pid;
@@ -48,7 +54,7 @@ namespace CommonModules
             PageTable = pageTable;
             for (int i = 0; i < PageTable.Size; i++)
             {
-                WSClockEntryMirrors.Add(new WSClockEntryMirror(ref PageTable.PageTableEntries[i]));
+                WSClockEntryMirrors.Add(new WSClockEntryMirror(ref PageTable.PageTableEntries[i], CurrentVirtualTime));
             }
         }
         /// <summary>
@@ -146,10 +152,10 @@ namespace CommonModules
         /// <summary>
         /// Создает новый экземпляр "зеркала страницы рабочего набора"
         /// </summary>
-        public WSClockEntryMirror(ref PageTableEntry pageTableEntry)
+        public WSClockEntryMirror(ref PageTableEntry pageTableEntry, int currentVirtualTime)
         {
             PageTableEntry = pageTableEntry;
-            LastUseTime = 0;
+            LastUseTime = currentVirtualTime;
             Referenced = false;
             Modified = false;
         }
