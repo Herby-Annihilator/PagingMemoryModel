@@ -285,6 +285,7 @@ namespace CommonModules
                         {
                             process.WSClockEntryMirrors[i].Referenced = false;
                             process.WSClockEntryMirrors[i].LastUseTime = process.CurrentVirtualTime;
+                            continue;
                         }
                         else if (process.CurrentVirtualTime - process.WSClockEntryMirrors[i].LastUseTime <= PageMaxAge) // это еще рабочий набор
                         {
@@ -293,16 +294,33 @@ namespace CommonModules
                         else  // можно удалить
                         {
                             ableToRemove = true;
-                            // remove this page
+                            // если страница модифицирована, то ее данные нужно перезаписать на диск
                             if (process.WSClockEntryMirrors[i].Modified == true)
                             {
-
+                                // если страница записана на диск - обновляем данные
+                                if (process.WSClockEntryMirrors[i].WrittenIntoFile)
+                                {
+                                    if (!WritePageToDrive(process.FileName, process.WSClockEntryMirrors[i].PageTableEntry, process.WSClockEntryMirrors[i].PageTableEntryIndex, true))
+                                    {
+                                        throw new Exception("Дисковая операция с процессом крашнулась");
+                                    }
+                                }
+                                else  // иначе просто пишем в файл
+                                {
+                                    StreamWriter writer = new StreamWriter(CurrentDirectoryName + "\\" + process.FileName);
+                                    WritePageToDrive(writer, process.WSClockEntryMirrors[i].PageTableEntry, process.WSClockEntryMirrors[i].PageTableEntryIndex);
+                                    process.WSClockEntryMirrors[i].WrittenIntoFile = true;
+                                    writer.Close();
+                                }
                             }
+                            // удаляем страницу из памяти
+                            process.WSClockEntryMirrors.RemoveAt(i);
                         }
                     }
                 }
             }
         }
+
         //
         // создать механизмы создания файлов в директории для каждого процесса
         //
@@ -453,7 +471,7 @@ namespace CommonModules
                             }
                             k++;
                         }
-                        process.WSClockEntryMirrors.Add(new WSClockEntryMirror(ref process.PageTable.PageTableEntries[pageIndexInPageTable], process.CurrentVirtualTime));
+                        process.WSClockEntryMirrors.Add(new WSClockEntryMirror(ref process.PageTable.PageTableEntries[pageIndexInPageTable], process.CurrentVirtualTime, pageIndexInPageTable));
                         deleted = true;
                     }
                     else

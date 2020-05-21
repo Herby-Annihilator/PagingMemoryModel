@@ -54,7 +54,7 @@ namespace CommonModules
             PageTable = pageTable;
             for (int i = 0; i < PageTable.Size; i++)
             {
-                WSClockEntryMirrors.Add(new WSClockEntryMirror(ref PageTable.PageTableEntries[i], CurrentVirtualTime));
+                WSClockEntryMirrors.Add(new WSClockEntryMirror(ref PageTable.PageTableEntries[i], CurrentVirtualTime, i));
             }
         }
         /// <summary>
@@ -122,7 +122,15 @@ namespace CommonModules
     /// </summary>
     public class WSClockEntryMirror
     {
-        PageTableEntry PageTableEntry { get; set; }
+        /// <summary>
+        /// Индекс записи в таблице страниц
+        /// </summary>
+        public int PageTableEntryIndex { get; set; }
+        /// <summary>
+        /// Находится ли данная страница в файле
+        /// </summary>
+        public bool WrittenIntoFile { get; set; }
+        public PageTableEntry PageTableEntry { get; set; }
         /// <summary>
         /// Время последнего использования
         /// </summary>
@@ -152,12 +160,14 @@ namespace CommonModules
         /// <summary>
         /// Создает новый экземпляр "зеркала страницы рабочего набора"
         /// </summary>
-        public WSClockEntryMirror(ref PageTableEntry pageTableEntry, int currentVirtualTime)
+        public WSClockEntryMirror(ref PageTableEntry pageTableEntry, int currentVirtualTime, int index)
         {
+            PageTableEntryIndex = index;
             PageTableEntry = pageTableEntry;
             LastUseTime = currentVirtualTime;
             Referenced = false;
             Modified = false;
+            WrittenIntoFile = false;
         }
     }
 
