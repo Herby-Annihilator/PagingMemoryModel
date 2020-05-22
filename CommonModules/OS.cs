@@ -74,9 +74,9 @@ namespace CommonModules
                 freePageCount += (hardware.RAMs[i].ByteCells.Length * 4) / pageSize; // число блоков по 32 бита * 4 = число байт. Поделим на размер страницы в байтах и получим число страниц
             }
             this.FreePages = new List<int>(freePageCount);
-            for (int i = 0; i < freePageCount; i++)
-            {
-                FreePages[i] = i;
+            for (int i = 0; i < freePageCount; i++)    
+            {                                                           
+                FreePages[i] = i;    
             }
 
             //
@@ -112,6 +112,7 @@ namespace CommonModules
                     for (int i = 0; i < pageCountToInit; i++)
                     {
                         pageTable.PageTableEntries[i].Adress = FreePages[0];
+                        pageTable.PageTableEntries[i].Present = true;
                         FreePages.RemoveAt(0);
                     }
                 }
@@ -260,13 +261,14 @@ namespace CommonModules
         }
 
         /// <summary>
-        /// Обрабатывает исключение PageFault алгоритмом WSClock
+        /// Обрабатывает исключение PageFault алгоритмом WSClock. доработать, не использовать
         /// </summary>
-        /// <param name="process"></param>
-        /// <param name="pageNumber"></param>
-        public void PageFaultExeptionHandler(Process process, int pageNumber)
+        /// <param name="process">процесс, вызвавший ошибку</param>
+        /// <param name="pageNumber">номер страницы в таблице страниц, обращение к которой вызвало ошибку</param>
+        /// <param name="processIndex">Индекс процесса в списке процессов</param>
+        public void PageFaultExeptionHandler(Process process, int pageNumber, int processIndex)
         {
-            if (FreePages.Count > 0)
+            if (FreePages.Count > 0)   // вот тут подумать
             {
                 process.PageTable.PageTableEntries[pageNumber].Present = true;
                 process.PageTable.PageTableEntries[pageNumber].Adress = FreePages[0];
@@ -313,14 +315,100 @@ namespace CommonModules
                                     writer.Close();
                                 }
                             }
+                            //
                             // удаляем страницу из памяти
+                            //
                             process.WSClockEntryMirrors.RemoveAt(i);
+                            //
+                            // на ее место нужно поставить нужную страницу
+                            //
+
+                            // вычисляем физическое местоположение страницы, вызвавшей ошибку
+                            int adress = process.PageTable.PageTableEntries[pageNumber].Adress;
+                            int ramBlockNumber = 0;
+                            for (int j = 0; j < hardware.RAMs.Length; j++)
+                            {
+                                uint endPhysicalAdress = hardware.RAMs[j].PhisicalAdress + (uint)(hardware.RAMs[j].ByteCells.Length * (bitDepth / 8));
+                                if (adress >= hardware.RAMs[j].PhisicalAdress && adress < endPhysicalAdress)
+                                {
+                                    ramBlockNumber = j;
+                                    break;
+                                }
+                            }
+                            // начало страницы
+                            int startBitArrayBlock = (int)(adress - hardware.RAMs[ramBlockNumber].PhisicalAdress) / (bitDepth / 8);
+                            // если не удалось восстановить (нет на диске)
+                            if (!RestoreProcessPage(ref process, pageNumber, ref hardware.RAMs[ramBlockNumber].ByteCells, startBitArrayBlock, adress))
+                            {
+                                MessageBox.Show("Данные поцесса на диске не найдены. Процесс будет убит.", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                            }
+
                         }
                     }
                 }
             }
         }
 
+        private ref RAM AppropriatePhysicalRamBlock(uint adress)
+        {
+            for (int i = 0; i < hardware.RAMs.Length; i++)
+            {
+                uint physicalEndAdress = hardware.RAMs[i].PhisicalAdress + (uint)(hardware.RAMs[i].ByteCells.Length * (bitDepth / 8));
+                if (adress >= hardware.RAMs[i].PhisicalAdress && adress < physicalEndAdress)
+                {
+                    return ref hardware.RAMs[i];
+                }
+            }
+            throw new Exception("Не удалось найти соответсвующую физическую память");
+        }
+        /// <summary>
+        /// Превращает номер страницы в общем адресном пространстве в реальный физический адрес.
+        /// </summary>
+        /// <param name="pageAdressInPageTableEntry">грубо говоря - номер страницы в общем адресном пространстве (поле Adress)</param>
+        /// <returns></returns>
+        private uint ConvertToRealPhysicalAdress(int pageAdressInPageTableEntry)
+        {
+            return (uint)((uint)pageAdressInPageTableEntry * pageSize);
+        }
+
+        public void KillProcess(int processIndex)
+        {
+            
+            for (int i = 0; i < processes[processIndex].PageTable.Size; i++)
+            {
+                //
+                // очистил страницы
+                //
+                uint adress = ConvertToRealPhysicalAdress(processes[processIndex].PageTable.PageTableEntries[i].Adress);
+                RAM ram = AppropriatePhysicalRamBlock(adress);
+                ClearPage(ref ram.ByteCells, ram.PhisicalAdress, adress);
+                //
+                // добавить в список свободных страниц
+                //
+                if (processes[processIndex].PageTable.PageTableEntries[i].Adress != 0 && processes[processIndex].PageTable.PageTableEntries[i].Present)
+                {
+                    FreePages.Add(processes[processIndex].PageTable.PageTableEntries[i].Adress);
+                }
+            }
+            FreePages.Sort();
+            
+
+        }
+        /// <summary>
+        /// Очищает физическую страницу
+        /// </summary>
+        /// <param name="ram">физическая память</param>
+        /// <param name="physicalStartAdress">настоящий адрес начала данного блока физической памяти</param>
+        /// <param name="pageStartAdress">физический адрес страницы</param>
+        private void ClearPage(ref BitArray[] ram, uint physicalStartAdress, uint pageStartAdress)
+        {
+            int startBitArrayBlock = ((int)(pageStartAdress - physicalStartAdress) / (bitDepth / 8));
+            int numberOfBitsBlocks = pageSize / bitDepth;
+            for (int i = startBitArrayBlock; i < numberOfBitsBlocks; i++)
+            {
+                ram[i].SetAll(false);
+            }
+        }
         //
         // создать механизмы создания файлов в директории для каждого процесса
         //
@@ -414,6 +502,7 @@ namespace CommonModules
 
         /// <summary>
         /// Восстанавливает данные страницы с диска. Если не удалось восстановить (не нашлось такой страницы), то вернет false.
+        /// Если формат неверен, то выкинет исключение.
         /// </summary>
         /// <param name="process">процесс, для которого производится восстановление</param>
         /// <param name="pageIndexInPageTable">номер записи, которая отвечает за восстанавливаюмую страницу</param>
@@ -424,72 +513,66 @@ namespace CommonModules
         private bool RestoreProcessPage(ref Process process, int pageIndexInPageTable, ref BitArray[] ram, int startBitArrayBlock, int newPageAdress)
         {
             StreamReader reader = new StreamReader(CurrentDirectoryName + "\\" + process.FileName);
-            StreamWriter writer = new StreamWriter(CurrentDirectoryName + "\\" + "tmp.prc");
-            bool deleted = false;
+            //StreamWriter writer = new StreamWriter(CurrentDirectoryName + "\\" + "tmp.prc");
+            bool isRead = false;
             string pageNumber;
             string[] buffer;
             int number = 0;
-            while (!reader.EndOfStream)
+            while (!reader.EndOfStream && !isRead)
             {
-                if (!deleted)
+
+                pageNumber = reader.ReadLine();
+                buffer = pageNumber.Split(new char[] { ' ', '[', ']' }, StringSplitOptions.RemoveEmptyEntries);
+
+                bool isNumber = false;
+                for (int i = 0; i < buffer.Length; i++)
                 {
-                    pageNumber = reader.ReadLine();
-                    buffer = pageNumber.Split(new char[] { ' ', '[', ']' }, StringSplitOptions.RemoveEmptyEntries);
-
-                    bool isNumber = false;
-                    for (int i = 0; i < buffer.Length; i++)
+                    if (Int32.TryParse(buffer[i], out number))
                     {
-                        if (Int32.TryParse(buffer[i], out number))
-                        {
-                            isNumber = true;
-                            break;
-                        }
-                    }
-                    if (!isNumber)
-                    {
-                        return false;
-                    }
-
-                    if (number == pageIndexInPageTable)
-                    {
-                        string[] bitBlocks = reader.ReadLine().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                        process.PageTable.PageTableEntries[pageIndexInPageTable].Adress = newPageAdress;
-                        int endBitArrayBlock = startBitArrayBlock + pageSize / (bitDepth / 8);     // 4096 байт / 4 байта = 128 блоков
-                        int k = 0;
-                        for (int i = startBitArrayBlock; i < endBitArrayBlock; i++)
-                        {
-                            for (int j = 0; i < ram[i].Length; j++)
-                            {
-                                if (bitBlocks[k][j] == '0')
-                                {
-                                    ram[i].Set(j, false);
-                                }
-                                else
-                                {
-                                    ram[i].Set(j, true);
-                                }
-                            }
-                            k++;
-                        }
-                        process.WSClockEntryMirrors.Add(new WSClockEntryMirror(ref process.PageTable.PageTableEntries[pageIndexInPageTable], process.CurrentVirtualTime, pageIndexInPageTable));
-                        deleted = true;
-                    }
-                    else
-                    {
-                        writer.Write(reader.ReadLine());
+                        isNumber = true;
+                        break;
                     }
                 }
-                else
+                if (!isNumber)
                 {
-                    writer.Write(reader.ReadToEnd());
+                    throw new Exception("Неверный формат в файле");
+                }
+
+                if (number == pageIndexInPageTable)
+                {
+                    string[] bitBlocks = reader.ReadLine().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                    process.PageTable.PageTableEntries[pageIndexInPageTable].Adress = newPageAdress;
+                    int endBitArrayBlock = startBitArrayBlock + pageSize / (bitDepth / 8);     // 4096 байт / 4 байта = 128 блоков
+                    int k = 0;
+                    for (int i = startBitArrayBlock; i < endBitArrayBlock; i++)
+                    {
+                        for (int j = 0; i < ram[i].Length; j++)
+                        {
+                            if (bitBlocks[k][j] == '0')
+                            {
+                                ram[i].Set(j, false);
+                            }
+                            else
+                            {
+                                ram[i].Set(j, true);
+                            }
+                        }
+                        k++;
+                    }
+                    process.WSClockEntryMirrors.Add(new WSClockEntryMirror(ref process.PageTable.PageTableEntries[pageIndexInPageTable], process.CurrentVirtualTime, pageIndexInPageTable));
+                    process.WSClockEntryMirrors[process.WSClockEntryMirrors.Count - 1].WrittenIntoFile = true;
+                    isRead = true;
                 }
             }
-
-            writer.Close();
             reader.Close();
-            File.Delete(CurrentDirectoryName + "\\" + process.FileName);
-            File.Move(CurrentDirectoryName + "\\" + "tmp.prc", CurrentDirectoryName + "\\" + process.FileName);
-            return true;
+            if (isRead)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
     }
 
