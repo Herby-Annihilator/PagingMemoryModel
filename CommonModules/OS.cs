@@ -268,16 +268,24 @@ namespace CommonModules
         /// <param name="processIndex">Индекс процесса в списке процессов</param>
         public void PageFaultExeptionHandler(Process process, int pageNumber, int processIndex)
         {
-            if (FreePages.Count > 0)   // вот тут подумать
+            bool memoryAllocated = false;
+            if (process.PageTable.PageTableEntries[pageNumber].Adress == 0)
             {
-                process.PageTable.PageTableEntries[pageNumber].Present = true;
-                process.PageTable.PageTableEntries[pageNumber].Adress = FreePages[0];
-                FreePages.RemoveAt(0);
+                if (FreePages.Count > 0)
+                {
+                    process.PageTable.PageTableEntries[pageNumber].Present = true;
+                    process.PageTable.PageTableEntries[pageNumber].Adress = FreePages[0];
+                    FreePages.RemoveAt(0);
+                    process.WSClockEntryMirrors.Add(new WSClockEntryMirror(ref process.PageTable.PageTableEntries[pageNumber], process.CurrentVirtualTime, pageNumber));
+                    memoryAllocated = true;
+                }
             }
-            else
+
+            if(!memoryAllocated)
             {
                 bool ableToRemove = false;
-                List<WSClockEntryMirror> removalCandidates = new List<WSClockEntryMirror>();
+                List<int> removalCandidates = new List<int>();
+                int removalPage = 0;
                 int workingSetPagesNumber = process.WSClockEntryMirrors.Count;
                 for (int i = 0; i < workingSetPagesNumber; i++)
                 {
@@ -287,68 +295,92 @@ namespace CommonModules
                         {
                             process.WSClockEntryMirrors[i].Referenced = false;
                             process.WSClockEntryMirrors[i].LastUseTime = process.CurrentVirtualTime;
-                            continue;
                         }
                         else if (process.CurrentVirtualTime - process.WSClockEntryMirrors[i].LastUseTime <= PageMaxAge) // это еще рабочий набор
                         {
-                            removalCandidates.Add(process.WSClockEntryMirrors[i]);
+                            removalCandidates.Add(i);
                         }
                         else  // можно удалить
                         {
                             ableToRemove = true;
-                            // если страница модифицирована, то ее данные нужно перезаписать на диск
-                            if (process.WSClockEntryMirrors[i].Modified == true)
-                            {
-                                // если страница записана на диск - обновляем данные
-                                if (process.WSClockEntryMirrors[i].WrittenIntoFile)
-                                {
-                                    if (!WritePageToDrive(process.FileName, process.WSClockEntryMirrors[i].PageTableEntry, process.WSClockEntryMirrors[i].PageTableEntryIndex, true))
-                                    {
-                                        throw new Exception("Дисковая операция с процессом крашнулась");
-                                    }
-                                }
-                                else  // иначе просто пишем в файл
-                                {
-                                    StreamWriter writer = new StreamWriter(CurrentDirectoryName + "\\" + process.FileName);
-                                    WritePageToDrive(writer, process.WSClockEntryMirrors[i].PageTableEntry, process.WSClockEntryMirrors[i].PageTableEntryIndex);
-                                    process.WSClockEntryMirrors[i].WrittenIntoFile = true;
-                                    writer.Close();
-                                }
-                            }
-                            //
-                            // удаляем страницу из памяти
-                            //
-                            process.WSClockEntryMirrors.RemoveAt(i);
-                            //
-                            // на ее место нужно поставить нужную страницу
-                            //
-
-                            // вычисляем физическое местоположение страницы, вызвавшей ошибку
-                            int adress = process.PageTable.PageTableEntries[pageNumber].Adress;
-                            int ramBlockNumber = 0;
-                            for (int j = 0; j < hardware.RAMs.Length; j++)
-                            {
-                                uint endPhysicalAdress = hardware.RAMs[j].PhisicalAdress + (uint)(hardware.RAMs[j].ByteCells.Length * (bitDepth / 8));
-                                if (adress >= hardware.RAMs[j].PhisicalAdress && adress < endPhysicalAdress)
-                                {
-                                    ramBlockNumber = j;
-                                    break;
-                                }
-                            }
-                            // начало страницы
-                            int startBitArrayBlock = (int)(adress - hardware.RAMs[ramBlockNumber].PhisicalAdress) / (bitDepth / 8);
-                            // если не удалось восстановить (нет на диске)
-                            if (!RestoreProcessPage(ref process, pageNumber, ref hardware.RAMs[ramBlockNumber].ByteCells, startBitArrayBlock, adress))
-                            {
-                                MessageBox.Show("Данные поцесса на диске не найдены. Процесс будет убит.", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                            }
-
+                            removalPage = i;
                         }
                     }
+                    else if (process.WSClockEntryMirrors[i].Referenced == true)
+                    {
+                        process.WSClockEntryMirrors[i].Referenced = false;
+                        process.WSClockEntryMirrors[i].LastUseTime = process.CurrentVirtualTime;
+                    }
+                }
+                if (!ableToRemove)
+                {
+                    for (int i = 0; i < removalCandidates.Count; i++)
+                    {
+                        if (!process.WSClockEntryMirrors[removalCandidates[i]].Modified)
+                        {
+                            ableToRemove = true;
+                            break;
+                        }
+                    }
+                    if (!ableToRemove)
+                    {
+                        removalPage = removalCandidates[0];
+                    }
+                }
+                // если страница модифицирована, то ее данные нужно перезаписать на диск
+                if (process.WSClockEntryMirrors[removalPage].Modified == true)
+                {
+                    // если страница записана на диск - обновляем данные
+                    if (process.WSClockEntryMirrors[removalPage].WrittenIntoFile)
+                    {
+                        if (!WritePageToDrive(process.FileName, process.WSClockEntryMirrors[removalPage].PageTableEntry, process.WSClockEntryMirrors[removalPage].PageTableEntryIndex, true))
+                        {
+                            throw new Exception("Дисковая операция с процессом крашнулась");
+                        }
+                    }
+                    else  // иначе просто пишем в файл
+                    {
+                        StreamWriter writer = new StreamWriter(CurrentDirectoryName + "\\" + process.FileName);
+                        WritePageToDrive(writer, process.WSClockEntryMirrors[removalPage].PageTableEntry, process.WSClockEntryMirrors[removalPage].PageTableEntryIndex);
+                        process.WSClockEntryMirrors[removalPage].WrittenIntoFile = true;
+                        writer.Close();
+                    }
+                }
+                //
+                // удаляем страницу из памяти
+                //
+                process.WSClockEntryMirrors.RemoveAt(removalPage);
+                //
+                // на ее место нужно поставить нужную страницу
+                //
+
+                // вычисляем физическое местоположение страницы, вызвавшей ошибку
+                int adress = process.PageTable.PageTableEntries[pageNumber].Adress;
+                int ramBlockNumber = 0;
+                for (int j = 0; j < hardware.RAMs.Length; j++)
+                {
+                    uint endPhysicalAdress = hardware.RAMs[j].PhisicalAdress + (uint)(hardware.RAMs[j].ByteCells.Length * (bitDepth / 8));
+                    if (adress >= hardware.RAMs[j].PhisicalAdress && adress < endPhysicalAdress)
+                    {
+                        ramBlockNumber = j;
+                        break;
+                    }
+                }
+                // начало страницы
+                int startBitArrayBlock = (int)(adress - hardware.RAMs[ramBlockNumber].PhisicalAdress) / (bitDepth / 8);
+                // если не удалось восстановить (нет на диске)
+                if (!RestoreProcessPage(ref process, pageNumber, ref hardware.RAMs[ramBlockNumber].ByteCells, startBitArrayBlock, adress))
+                {
+                    MessageBox.Show("Данные поцесса на диске не найдены. Процесс будет убит.", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    KillProcess(processIndex);
                 }
             }
         }
-
+        /// <summary>
+        /// Возвращает соответсвующий указанному адрему блок оперативной памяти
+        /// </summary>
+        /// <param name="adress">настоящий физический адрес байта</param>
+        /// <returns></returns>
         private ref RAM AppropriatePhysicalRamBlock(uint adress)
         {
             for (int i = 0; i < hardware.RAMs.Length; i++)
@@ -385,7 +417,7 @@ namespace CommonModules
                 //
                 // добавить в список свободных страниц
                 //
-                if (processes[processIndex].PageTable.PageTableEntries[i].Adress != 0 && processes[processIndex].PageTable.PageTableEntries[i].Present)
+                if (processes[processIndex].PageTable.PageTableEntries[i].Present)
                 {
                     FreePages.Add(processes[processIndex].PageTable.PageTableEntries[i].Adress);
                 }
