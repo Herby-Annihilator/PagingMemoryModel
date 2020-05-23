@@ -88,7 +88,8 @@ namespace CommonModules
             RAMs = new RAM[RamSlotsNumber];
             for (int i = 0; i < RamSlotsNumber; i++)
             {
-                RAMs[i] = new RAM(ramSize);
+                uint adress = (uint)(i * ramSize);
+                RAMs[i] = new RAM(ramSize, adress);
             }
 
             RomNumber = romNumber;
@@ -149,7 +150,7 @@ namespace CommonModules
         /// <summary>
         /// Физический адрес начала данного блока оперативки
         /// </summary>
-        public UInt32 PhisicalAdress { get; set; }
+        public UInt32 PhysicalAdress { get; set; }
         /// <summary>
         /// Разрядность
         /// </summary>
@@ -169,7 +170,7 @@ namespace CommonModules
         /// <param name="adress">адрес начала физического блока</param>
         public RAM(int size, UInt32 adress)
         {
-            PhisicalAdress = adress;
+            PhysicalAdress = adress;
             Size = size;
             int count = Size / BitDepth;
             ByteCells = new BitArray[count];

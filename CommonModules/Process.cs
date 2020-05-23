@@ -87,8 +87,8 @@ namespace CommonModules
             {
                 for (int i = 0; i < hardware.RAMs.Length; i++)
                 {
-                    uint endAdress = (uint)(hardware.RAMs[i].PhisicalAdress + hardware.RAMs[i].ByteCells.Length * 4); // потомучто криво и под 32 бита
-                    if (PageTable.PageTableEntries[pageNumberInTable].Adress >= hardware.RAMs[i].PhisicalAdress && PageTable.PageTableEntries[pageNumberInTable].Adress < endAdress)
+                    uint endAdress = (uint)(hardware.RAMs[i].PhysicalAdress + hardware.RAMs[i].ByteCells.Length * 4); // потомучто криво и под 32 бита
+                    if (PageTable.PageTableEntries[pageNumberInTable].Adress >= hardware.RAMs[i].PhysicalAdress && PageTable.PageTableEntries[pageNumberInTable].Adress < endAdress)
                     {
                         int blockNumber = PageTable.PageTableEntries[pageNumberInTable].Adress / 4;
                         hardware.RAMs[i].ByteCells[blockNumber].Not();

@@ -11,7 +11,7 @@ using System.Windows.Forms;
 namespace CommonModules
 {
     public class OS
-    {
+    {       
         private int PageMaxAge { get; set; } = 10;
         /// <summary>
         /// Список свободных страниц. Элемент содержит номер свободной страницы и он не обязательно равен индексу
@@ -54,7 +54,9 @@ namespace CommonModules
                 }
             }
         }
-
+        /// <summary>
+        /// Путь в директорию Processies
+        /// </summary>
         public string CurrentDirectoryName { get; set; }
 
         /// <summary>
@@ -112,7 +114,7 @@ namespace CommonModules
                     for (int i = 0; i < pageCountToInit; i++)
                     {
                         pageTable.PageTableEntries[i].Adress = FreePages[0];
-                        pageTable.PageTableEntries[i].Present = true;
+                        pageTable.PageTableEntries[i].Present = true;                        
                         FreePages.RemoveAt(0);
                     }
                 }
@@ -124,7 +126,14 @@ namespace CommonModules
                 //
                 // создать файл на диске, отвечающий за данный процесс
                 //
-                File.Create(CurrentDirectoryName + processes[processes.Count - 1].Name + ".prc");
+                //File.Create(CurrentDirectoryName + processes[processes.Count - 1].Name + ".prc");
+                StreamWriter writer = new StreamWriter(CurrentDirectoryName + "\\" + processes[processes.Count - 1].FileName);
+                int recordCount = processes[processes.Count - 1].WSClockEntryMirrors.Count;
+                for (int i = 0; i < recordCount; i++)
+                {
+                    WritePageToDrive(writer, processes[processes.Count - 1].PageTable.PageTableEntries[i], i);
+                }
+                writer.Close();
             }
             catch (OutOfMemoryException e)
             {
@@ -139,23 +148,23 @@ namespace CommonModules
         /// Получает ссылку на массив BitArray[] (физическая память) и смещение в этой памяти, с которого начинается свободный блок
         /// памяти размером в указанное количество страниц. В случае неудачи выкидывает исключение OutOfMemoryException.
         /// </summary>
-        /// <param name="indexesInFreePageList"></param>
-        /// <param name="offset"></param>
+        /// <param name="indexesInFreePageList">результат метода private int[] GetFreePageIndexesInListOfPages(int pageCount)</param>
+        /// <param name="offset">начало блока размером в 32(64) бита</param>
         /// <returns></returns>
         private ref BitArray[] GetFreePages(int[] indexesInFreePageList, out uint offset)
         {
             uint firstPageAdress = (uint)indexesInFreePageList[0] * (uint)pageSize;
-            offset = firstPageAdress;
+            offset = firstPageAdress / (uint)(bitDepth / 8);   // начало блока размером в 32(64) бита
             for (int i = 0; i < hardware.RAMs.Length; i++)
             {
-                uint physicalEndAdress = hardware.RAMs[i].PhisicalAdress + (uint)(hardware.RAMs[i].ByteCells.Length * bitDepth / 8);
-                if (firstPageAdress >= hardware.RAMs[i].PhisicalAdress && firstPageAdress < physicalEndAdress)
+                uint physicalEndAdress = hardware.RAMs[i].PhysicalAdress + (uint)(hardware.RAMs[i].ByteCells.Length * bitDepth / 8);
+                if (firstPageAdress >= hardware.RAMs[i].PhysicalAdress && firstPageAdress < physicalEndAdress)
                 {
                     uint lastPageAdress = (uint)indexesInFreePageList[indexesInFreePageList.Length - 1] * (uint)pageSize;
                     //
                     // это смежные блоки памяти, рсположенные на одной физической плашке
                     //
-                    if (lastPageAdress >= hardware.RAMs[i].PhisicalAdress && lastPageAdress < physicalEndAdress)
+                    if (lastPageAdress >= hardware.RAMs[i].PhysicalAdress && lastPageAdress < physicalEndAdress)
                     {                      
                         for (int j = 0; j < indexesInFreePageList.Length; j++)
                         {
@@ -359,15 +368,15 @@ namespace CommonModules
                 int ramBlockNumber = 0;
                 for (int j = 0; j < hardware.RAMs.Length; j++)
                 {
-                    uint endPhysicalAdress = hardware.RAMs[j].PhisicalAdress + (uint)(hardware.RAMs[j].ByteCells.Length * (bitDepth / 8));
-                    if (adress >= hardware.RAMs[j].PhisicalAdress && adress < endPhysicalAdress)
+                    uint endPhysicalAdress = hardware.RAMs[j].PhysicalAdress + (uint)(hardware.RAMs[j].ByteCells.Length * (bitDepth / 8));
+                    if (adress >= hardware.RAMs[j].PhysicalAdress && adress < endPhysicalAdress)
                     {
                         ramBlockNumber = j;
                         break;
                     }
                 }
                 // начало страницы
-                int startBitArrayBlock = (int)(adress - hardware.RAMs[ramBlockNumber].PhisicalAdress) / (bitDepth / 8);
+                int startBitArrayBlock = (int)(adress - hardware.RAMs[ramBlockNumber].PhysicalAdress) / (bitDepth / 8);
                 // если не удалось восстановить (нет на диске)
                 if (!RestoreProcessPage(ref process, pageNumber, ref hardware.RAMs[ramBlockNumber].ByteCells, startBitArrayBlock, adress))
                 {
@@ -385,8 +394,8 @@ namespace CommonModules
         {
             for (int i = 0; i < hardware.RAMs.Length; i++)
             {
-                uint physicalEndAdress = hardware.RAMs[i].PhisicalAdress + (uint)(hardware.RAMs[i].ByteCells.Length * (bitDepth / 8));
-                if (adress >= hardware.RAMs[i].PhisicalAdress && adress < physicalEndAdress)
+                uint physicalEndAdress = hardware.RAMs[i].PhysicalAdress + (uint)(hardware.RAMs[i].ByteCells.Length * (bitDepth / 8));
+                if (adress >= hardware.RAMs[i].PhysicalAdress && adress < physicalEndAdress)
                 {
                     return ref hardware.RAMs[i];
                 }
@@ -402,7 +411,10 @@ namespace CommonModules
         {
             return (uint)((uint)pageAdressInPageTableEntry * pageSize);
         }
-
+        /// <summary>
+        /// "Убивает" процесс с указанным индексом в списке процессов
+        /// </summary>
+        /// <param name="processIndex"></param>
         public void KillProcess(int processIndex)
         {
             
@@ -413,7 +425,7 @@ namespace CommonModules
                 //
                 uint adress = ConvertToRealPhysicalAdress(processes[processIndex].PageTable.PageTableEntries[i].Adress);
                 RAM ram = AppropriatePhysicalRamBlock(adress);
-                ClearPage(ref ram.ByteCells, ram.PhisicalAdress, adress);
+                ClearPage(ref ram.ByteCells, ram.PhysicalAdress, adress);
                 //
                 // добавить в список свободных страниц
                 //
@@ -422,9 +434,21 @@ namespace CommonModules
                     FreePages.Add(processes[processIndex].PageTable.PageTableEntries[i].Adress);
                 }
             }
-            FreePages.Sort();
-            
+            // страницы, занимаемые таблицей тоже надо очистить
+            RAM ram1 = AppropriatePhysicalRamBlock(processes[processIndex].PageTable.StartIndex * (uint)(bitDepth / 8));
+            int pageCount = processes[processIndex].PageTable.Size * (bitDepth / 8) / pageSize;
+            for (int i = 0; i < pageCount; i++)
+            {
+                int pageNumber = (int)((ram1.PhysicalAdress + (processes[processIndex].PageTable.StartIndex * (bitDepth / 8) + i * pageSize)) / pageSize);
+                FreePages.Add(pageNumber);
+            }
+            processes[processIndex].PageTable.Clear();
 
+            FreePages.Sort();
+
+            File.Delete(CurrentDirectoryName + "\\" + processes[processIndex].FileName);
+
+            processes.RemoveAt(processIndex);
         }
         /// <summary>
         /// Очищает физическую страницу
@@ -517,10 +541,10 @@ namespace CommonModules
             uint adress = (uint)(pageTableEntry.Adress * pageSize);
             for (int i = 0; i < hardware.RAMs.Length; i++)
             {
-                uint endPhisycalAdress = hardware.RAMs[i].PhisicalAdress + (uint)(hardware.RAMs[i].ByteCells.Length * (bitDepth / 8));
-                if (adress >= hardware.RAMs[i].PhisicalAdress && adress < endPhisycalAdress)
+                uint endPhisycalAdress = hardware.RAMs[i].PhysicalAdress + (uint)(hardware.RAMs[i].ByteCells.Length * (bitDepth / 8));
+                if (adress >= hardware.RAMs[i].PhysicalAdress && adress < endPhisycalAdress)
                 {
-                    uint pageStartIndex = (adress - hardware.RAMs[i].PhisicalAdress) / (uint)(bitDepth / 8);  // стартовый индекс BitArray, с которого начинается страница
+                    uint pageStartIndex = (adress - hardware.RAMs[i].PhysicalAdress) / (uint)(bitDepth / 8);  // стартовый индекс BitArray, с которого начинается страница
                     uint pageEndIndex = pageStartIndex + (uint)pageSize / 4;   // блоки по 32 бита
                     writer.WriteLine("[ " + pageIndexInPageTable + " ]");
                     for (uint j = pageStartIndex; j < pageEndIndex; j++)

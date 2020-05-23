@@ -13,7 +13,7 @@ namespace SimpleModel.PagingModel
     public class PageTable
     {
         /// <summary>
-        /// Индекс начала таблицы
+        /// Индекс блока (32 бита), с которого начинаеся страница (относительно начала блока физической памяти - 0)
         /// </summary>
         public UInt32 StartIndex { get; set; }
         /// <summary>
@@ -30,7 +30,7 @@ namespace SimpleModel.PagingModel
         private int entryCount;
 
         /// <summary>
-        /// Индекс конца таблицы
+        /// Индекс блока (32 бита), на котором заканчивается страница (относительно начала блока физической памяти - 0)
         /// </summary>
         public UInt32 EndIndex { get; set; }
         public PageTableEntry[] PageTableEntries { get; set; }
@@ -38,7 +38,7 @@ namespace SimpleModel.PagingModel
         /// Создает таблицу страниц в памяти, но не инициализиурет адреса, тольк выставляет биты по умолчанию. Если таблица занимает не одну страницу,
         /// то эти страницы должны идти непрерывным блоком, иначе нужные данные просто будут затерты. За это отвечаете Вы.
         /// </summary>
-        /// <param name="startIndex">адрес начала таблицы</param>
+        /// <param name="startIndex">индекс блока (32 бита), с которого начинаеся страница (относительно начала блока физической памяти - 0)</param>
         /// <param name="ram">массив BitArray - физическая память машины</param>
         /// <param name="pageCount">число страниц, которое будет занимать таблица - вычисляется операционной системой</param>
         public PageTable(UInt32 startIndex, ref BitArray[] ram, int pageCount)
@@ -46,7 +46,7 @@ namespace SimpleModel.PagingModel
             this.pageCount = pageCount;
             StartIndex = startIndex;
             bitArray = ram;
-            EndIndex = startIndex + (uint)(pageCount * 4096);     // нужно умножать на размер страницы, а где его получить? (х его з - надо нормально выстраивать архитектуру)
+            EndIndex = startIndex + (uint)(pageCount * 4096 / 4);     // нужно умножать на размер страницы, а где его получить? (х его з - надо нормально выстраивать архитектуру)
             entryCount = pageCount * 1024;    // количество записей в таблице (умножаем на 1024 так как в странице размером 4096 байт 32768 бит -> записей по 32 бита будет 1024)
             PageTableEntries = new PageTableEntry[entryCount];
             for (int i = 0; i < entryCount; i++)
