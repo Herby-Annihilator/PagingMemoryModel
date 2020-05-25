@@ -88,7 +88,26 @@ namespace CommonModules
             Directory.CreateDirectory(Directory.GetCurrentDirectory() + "\\Processies");
             CurrentDirectoryName = Directory.GetCurrentDirectory() + "\\Processies";
         }
-
+        /// <summary>
+        /// Возвращает текущий работающий процесс.
+        /// </summary>
+        public Process CurrentProcess { get { return processes[currentProcessNumber]; } }
+        /// <summary>
+        /// Индекс текущего исполняемого процесса
+        /// </summary>
+        public int currentProcessNumber = 0;
+        /// <summary>
+        /// Запускает следующий в списке процесс
+        /// </summary>
+        public void StartNextProcess(object sender, System.Timers.ElapsedEventArgs e)
+        {
+            processes[currentProcessNumber].Run(ref hardware);
+            currentProcessNumber++;
+            if (currentProcessNumber >= processes.Count)
+            {
+                currentProcessNumber = 0;
+            }
+        }
 
         /// <summary>
         /// Создает новый процесс
@@ -435,7 +454,7 @@ namespace CommonModules
                 }
             }
             // страницы, занимаемые таблицей тоже надо очистить
-            RAM ram1 = AppropriatePhysicalRamBlock(processes[processIndex].PageTable.StartIndex * (uint)(bitDepth / 8));
+            RAM ram1 = AppropriatePhysicalRamBlock(processes[processIndex].PageTable.StartIndex * (uint)(bitDepth / 8));   // неверно
             int pageCount = processes[processIndex].PageTable.Size * (bitDepth / 8) / pageSize;
             for (int i = 0; i < pageCount; i++)
             {

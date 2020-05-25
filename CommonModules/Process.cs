@@ -62,7 +62,11 @@ namespace CommonModules
         /// </summary>
         public PageTable PageTable { get; set; }
 
-
+        public void Run(ref Hardware hardware)
+        {
+            Random random = new Random();
+            AccessPage(random.Next(0, PageTable.Size), hardware);
+        }
 
         //
         // Так делать плохо, но вы меня простите - так надо, не могу придумать, куда прикрутить это дело

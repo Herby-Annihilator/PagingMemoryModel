@@ -48,7 +48,7 @@ namespace SystemModel
             }
             else
             {
-                os.CreateNewProcess(Convert.ToInt32(textBoxNecessaryMemory.Text));
+                os.CreateNewProcess(textBoxName.Text, Convert.ToInt32(textBoxNecessaryMemory.Text), Convert.ToInt32(textBoxPriority.Text));
             }
         }
         /// <summary>
