@@ -52,9 +52,13 @@ namespace CommonModules
             PID = pid;
             Status = Status.Queue;
             PageTable = pageTable;
+            WSClockEntryMirrors = new List<WSClockEntryMirror>();
             for (int i = 0; i < PageTable.Size; i++)
             {
-                WSClockEntryMirrors.Add(new WSClockEntryMirror(ref PageTable.PageTableEntries[i], CurrentVirtualTime, i));
+                if (pageTable.PageTableEntries[i].Present == true)
+                {
+                    WSClockEntryMirrors.Add(new WSClockEntryMirror(ref PageTable.PageTableEntries[i], CurrentVirtualTime, i));
+                }
             }
         }
         /// <summary>

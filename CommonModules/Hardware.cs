@@ -176,7 +176,7 @@ namespace CommonModules
             BitDepth = bitDepth;
             PhysicalAdress = adress;
             Size = size;
-            int count = Size / BitDepth;
+            int count = Size / (BitDepth / 8);
             ByteCells = new BitArray[count];
             for (int i = 0; i < count; i++)
             {

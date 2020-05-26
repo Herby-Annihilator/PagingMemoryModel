@@ -318,6 +318,7 @@
             // 
             this.groupBoxProcess.Controls.Add(this.tableLayoutPanel3);
             this.groupBoxProcess.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.groupBoxProcess.Enabled = false;
             this.groupBoxProcess.Location = new System.Drawing.Point(619, 3);
             this.groupBoxProcess.Name = "groupBoxProcess";
             this.groupBoxProcess.Size = new System.Drawing.Size(610, 438);

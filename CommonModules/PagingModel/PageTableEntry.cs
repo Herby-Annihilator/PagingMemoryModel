@@ -49,11 +49,11 @@ namespace CommonModules.PagingModel
         {
             get
             {
-                return entry.Get(31);
+                return entry.Get(0);
             }
             set
             {
-                entry.Set(31, value);
+                entry.Set(0, value);
             }
         }
         /// <summary>
@@ -63,11 +63,11 @@ namespace CommonModules.PagingModel
         {
             get
             {
-                return entry.Get(30);
+                return entry.Get(1);
             }
             set
             {
-                entry.Set(30, value);
+                entry.Set(1, value);
             }
         }
         /// <summary>
@@ -77,11 +77,11 @@ namespace CommonModules.PagingModel
         {
             get
             {
-                return entry.Get(29);
+                return entry.Get(2);
             }
             set
             {
-                entry.Set(29, value);
+                entry.Set(2, value);
             }
         }
         /// <summary>
@@ -92,11 +92,11 @@ namespace CommonModules.PagingModel
         {
             get
             {
-                return entry.Get(28);
+                return entry.Get(3);
             }
             set
             {
-                entry.Set(28, value);
+                entry.Set(3, value);
             }
         }
 
@@ -110,11 +110,11 @@ namespace CommonModules.PagingModel
         {
             get
             {
-                return entry.Get(27);
+                return entry.Get(4);
             }
             set
             {
-                entry.Set(27, value);
+                entry.Set(4, value);
             }
         }
         /// <summary>
@@ -126,11 +126,11 @@ namespace CommonModules.PagingModel
         {
             get
             {
-                return entry.Get(26);
+                return entry.Get(5);
             }
             set
             {
-                entry.Set(26, value);
+                entry.Set(5, value);
             }
         }
         /// <summary>
@@ -141,11 +141,11 @@ namespace CommonModules.PagingModel
         {
             get
             {
-                return entry.Get(25);
+                return entry.Get(6);
             }
             set
             {
-                entry.Set(25, value);
+                entry.Set(6, value);
             }
         }
         /// <summary>
@@ -159,11 +159,11 @@ namespace CommonModules.PagingModel
         {
             get
             {
-                return entry.Get(24);
+                return entry.Get(7);
             }
             set
             {
-                entry.Set(24, value);
+                entry.Set(7, value);
             }
         }
         /// <summary>
@@ -175,11 +175,11 @@ namespace CommonModules.PagingModel
         {
             get
             {
-                return entry.Get(23);
+                return entry.Get(8);
             }
             set
             {
-                entry.Set(23, value);
+                entry.Set(8, value);
             }
         }
         /// <summary>
@@ -193,11 +193,11 @@ namespace CommonModules.PagingModel
             {
                 int[] arr = new int[1];
                 BitArray bitArray = new BitArray(32);
-                int index = 0;
-                for (int i = 12; i < 32; i++)
+                int index = 31;
+                for (int i = 0; i < 20; i++)
                 {
                     bitArray.Set(i, entry.Get(index));
-                    index++;
+                    index--;
                 }
 
                 bitArray.CopyTo(arr, 0);
@@ -205,13 +205,13 @@ namespace CommonModules.PagingModel
             }
             set
             {
-                int index = 0;
+                int index = 31;
                 int[] arr = new int[] { value };
                 BitArray bitArray = new BitArray(arr);
-                for (int i = 12; i < 32; i++)
+                for (int i = 0; i < 20; i++)
                 {
                     entry.Set(index, bitArray.Get(i));
-                    index++;
+                    index--;
                 }
             }
         }

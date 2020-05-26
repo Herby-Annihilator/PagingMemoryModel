@@ -75,10 +75,10 @@ namespace CommonModules
             {
                 freePageCount += (hardware.RAMs[i].ByteCells.Length * 4) / pageSize; // число блоков по 32 бита * 4 = число байт. Поделим на размер страницы в байтах и получим число страниц
             }
-            this.FreePages = new List<int>(freePageCount);
+            this.FreePages = new List<int>();
             for (int i = 0; i < freePageCount; i++)    
             {                                                           
-                FreePages[i] = i;    
+                FreePages.Add(i);    
             }
             processes = new List<Process>();
             //
@@ -172,14 +172,14 @@ namespace CommonModules
         /// <returns></returns>
         private ref BitArray[] GetFreePages(int[] indexesInFreePageList, out uint offset)
         {
-            uint firstPageAdress = (uint)indexesInFreePageList[0] * (uint)pageSize;
+            uint firstPageAdress = (uint)FreePages[indexesInFreePageList[0]] * (uint)pageSize;
             offset = firstPageAdress / (uint)(bitDepth / 8);   // начало блока размером в 32(64) бита
             for (int i = 0; i < hardware.RAMs.Length; i++)
             {
                 uint physicalEndAdress = hardware.RAMs[i].PhysicalAdress + (uint)(hardware.RAMs[i].ByteCells.Length * bitDepth / 8);
                 if (firstPageAdress >= hardware.RAMs[i].PhysicalAdress && firstPageAdress < physicalEndAdress)
                 {
-                    uint lastPageAdress = (uint)indexesInFreePageList[indexesInFreePageList.Length - 1] * (uint)pageSize;
+                    uint lastPageAdress = (uint)FreePages[indexesInFreePageList[indexesInFreePageList.Length - 1]] * (uint)pageSize;
                     //
                     // это смежные блоки памяти, рсположенные на одной физической плашке
                     //
@@ -187,7 +187,7 @@ namespace CommonModules
                     {                      
                         for (int j = 0; j < indexesInFreePageList.Length; j++)
                         {
-                            FreePages.Remove(indexesInFreePageList[j]);
+                            FreePages.RemoveAt(indexesInFreePageList[j]);
                         }
                         return ref hardware.RAMs[i].ByteCells;
                     }
@@ -272,6 +272,11 @@ namespace CommonModules
             Random random = new Random();
             bool isCorrect = false;
             int pid = 0;
+            if (processes.Count == 0)
+            {
+                pid = random.Next(1000, 9999);
+                isCorrect = true;
+            }
             while (isCorrect == false)
             {
                 pid = random.Next(1000, 9999);
@@ -584,11 +589,32 @@ namespace CommonModules
                     writer.WriteLine("[ " + pageIndexInPageTable + " ]");
                     for (uint j = pageStartIndex; j < pageEndIndex; j++)
                     {
-                        writer.Write(hardware.RAMs[i].ByteCells[j].ToString() + " ");
+                        writer.Write(GetBitArrayStringFormat(hardware.RAMs[i].ByteCells[j]) + " ");
                     }
                     writer.WriteLine();
                 }
             }
+        }
+        /// <summary>
+        /// Возвращает строковое предтавление BitArray
+        /// </summary>
+        /// <param name="bitArray"></param>
+        /// <returns></returns>
+        private string GetBitArrayStringFormat(BitArray bitArray)
+        {
+            string toReturn = "";
+            for (int i = 0; i < bitArray.Count; i++)
+            {
+                if(bitArray.Get(i))
+                {
+                    toReturn += '1';
+                }
+                else
+                {
+                    toReturn += '0';
+                }
+            }
+            return toReturn;
         }
 
         /// <summary>
@@ -611,7 +637,6 @@ namespace CommonModules
             int number = 0;
             while (!reader.EndOfStream && !isRead)
             {
-
                 pageNumber = reader.ReadLine();
                 buffer = pageNumber.Split(new char[] { ' ', '[', ']' }, StringSplitOptions.RemoveEmptyEntries);
 

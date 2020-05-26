@@ -49,7 +49,7 @@ namespace CommonModules.PagingModel
             for (int i = 0; i < entryCount; i++)
             {
                 PageTableEntries[i] = new PageTableEntry(ref bitArray[i + startIndex]);
-                PageTableEntries[i].Adress = i;
+                PageTableEntries[i].Adress = 0;
                 PageTableEntries[i].Accessed = false;
                 PageTableEntries[i].Dirty = false;
                 PageTableEntries[i].GlobalPage = false;
