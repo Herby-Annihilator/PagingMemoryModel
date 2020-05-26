@@ -1,0 +1,5 @@
+D:\Проекты  в студии\PagingMemoryModel\CommonModules\bin\Debug\CommonModules.dll
+D:\Проекты  в студии\PagingMemoryModel\CommonModules\bin\Debug\CommonModules.pdb
+D:\Проекты  в студии\PagingMemoryModel\CommonModules\obj\Debug\CommonModules.csprojAssemblyReference.cache
+D:\Проекты  в студии\PagingMemoryModel\CommonModules\obj\Debug\CommonModules.dll
+D:\Проекты  в студии\PagingMemoryModel\CommonModules\obj\Debug\CommonModules.pdb

@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Collections;
-using SimpleModel.PagingModel;
 using System.IO;
 using System.Windows.Forms;
+using CommonModules.PagingModel;
 
 namespace CommonModules
 {
@@ -80,7 +80,7 @@ namespace CommonModules
             {                                                           
                 FreePages[i] = i;    
             }
-
+            processes = new List<Process>();
             //
             // Создаю директорию в которой будут храниться текстовики для каждого процесса (один процесс = один файл)
             //
@@ -454,11 +454,23 @@ namespace CommonModules
                 }
             }
             // страницы, занимаемые таблицей тоже надо очистить
-            RAM ram1 = AppropriatePhysicalRamBlock(processes[processIndex].PageTable.StartIndex * (uint)(bitDepth / 8));   // неверно
+            uint realAdress = 0;
+            for (int i = 0; i < hardware.RAMs.Length; i++)
+            {
+                bool isCorrect;
+                realAdress = processes[processIndex].PageTable.GetRealPhysicalAdress(ref hardware.RAMs[i], out isCorrect);
+                if (isCorrect)
+                {
+                    break;
+                }
+            }
+            //
+            // Тут по хорошему надо бы проверку на значение isCorrect, но не буду делать (посмотрим, что получится)
+            //
             int pageCount = processes[processIndex].PageTable.Size * (bitDepth / 8) / pageSize;
             for (int i = 0; i < pageCount; i++)
             {
-                int pageNumber = (int)((ram1.PhysicalAdress + (processes[processIndex].PageTable.StartIndex * (bitDepth / 8) + i * pageSize)) / pageSize);
+                int pageNumber = ConvertRealAdressToPageNumber(realAdress);
                 FreePages.Add(pageNumber);
             }
             processes[processIndex].PageTable.Clear();
@@ -468,6 +480,10 @@ namespace CommonModules
             File.Delete(CurrentDirectoryName + "\\" + processes[processIndex].FileName);
 
             processes.RemoveAt(processIndex);
+        }
+        private int ConvertRealAdressToPageNumber(uint adress)
+        {
+            return (int)(adress / pageSize);
         }
         /// <summary>
         /// Очищает физическую страницу
@@ -649,11 +665,29 @@ namespace CommonModules
                 return false;
             }
         }
+
+        /// <summary>
+        /// Возвращает процесс по его PID
+        /// </summary>
+        /// <param name="PID"></param>
+        /// <returns></returns>
+        public Process GetCheckedProcess(int PID)
+        {
+            for (int i = 0; i < processes.Count; i++)
+            {
+                if (processes[i].PID == PID)
+                {
+                    return processes[i];
+                }
+            }
+            return null;
+        }
     }
 
     public class PageFault : System.Exception
     {
         public override string Message { get { return "Ошибка доступа к странице"; } }
     }
+
 
 }

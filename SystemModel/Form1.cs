@@ -41,13 +41,13 @@ namespace SystemModel
         {
             if (!CheckOSbitDepth())
             {
-                MessageBox.Show("Warning", "Пока что работает только 32-х разрядная система", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Пока что работает только 32-х разрядная система", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 comboBox1.Focus();
                 return;
             }
-            if (Convert.ToInt32(comboBoxPageSize.SelectedText) != 4096)
+            if (comboBoxPageSize.Text != "4096")
             {
-                MessageBox.Show("Warning", "Выберите размер страницы", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Выберите размер страницы", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 comboBoxPageSize.Focus();
                 return;
             }
@@ -63,14 +63,14 @@ namespace SystemModel
                     {
                         isCorrect = true;
                         memory = Convert.ToInt32(comboBoxes[i].SelectedItem.ToString());  // говнокод
-                        ram.Add(new RAM(memory * 1024 * 1024, startAdress));  // говнокод
+                        ram.Add(new RAM(memory * 1024 * 1024, startAdress, Convert.ToInt32(comboBox1.Text)));  // говнокод
                         startAdress += (uint)(memory * 1024 * 1024);  // говнокод
                     }
                 }
             }
             if (!isCorrect)
             {
-                MessageBox.Show("Warning", "Установите количество памяти", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Установите количество памяти", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
             else
@@ -79,9 +79,11 @@ namespace SystemModel
                 roms = new ROM[] { new ROM(1) };   // костыль
                 cpu = new CPU(32);                   // костыль
             }
-            mainForm = new MainForm();
-            mainForm.Hardware = new Hardware(ref rams, ref roms, cpu);
-            mainForm.OS = new OS(Convert.ToInt32(comboBox1.SelectedItem.ToString()), mainForm.Hardware, Convert.ToInt32(comboBoxPageSize.SelectedItem.ToString()));
+            Hardware hardware = new Hardware(ref rams, ref roms, cpu);
+            OS os = new OS(Convert.ToInt32(comboBox1.Text), hardware, Convert.ToInt32(comboBoxPageSize.Text));
+            mainForm = new MainForm(ref os, ref hardware);
+
+
             this.Hide();
 
             mainForm.Show();
@@ -95,7 +97,7 @@ namespace SystemModel
         {
             try
             {
-                if (Convert.ToInt32(this.comboBox1.SelectedValue.ToString()) != 32)
+                if (Convert.ToInt32(this.comboBox1.Text) != 32)
                 {
                     return false;
                 }
@@ -106,10 +108,67 @@ namespace SystemModel
             }
             catch
             {
-                MessageBox.Show("Warning", "Type Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Type Error", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 comboBox1.Focus();
             }
             return false;
+        }
+
+        private void checkBoxSlotNuber2_CheckedChanged(object sender, EventArgs e)
+        {
+            if (checkBoxSlotNuber2.Checked)
+            {
+                comboBoxRAMSize2.Enabled = true;
+            }
+            else
+            {
+                comboBoxRAMSize2.Enabled = false;
+                comboBoxRAMSize2.SelectedIndex = -1;
+            }
+        }
+
+        private void checkBoxSlotNuber1_CheckedChanged(object sender, EventArgs e)
+        {
+            if (checkBoxSlotNuber1.Checked)
+            {
+                comboBoxRAMSize1.Enabled = true;
+            }
+            else
+            {
+                comboBoxRAMSize1.Enabled = false;
+                comboBoxRAMSize1.SelectedIndex = -1;
+            }
+        }
+
+        private void checkBoxSlotNuber3_CheckedChanged(object sender, EventArgs e)
+        {
+            if (checkBoxSlotNuber3.Checked)
+            {
+                comboBoxRAMSize3.Enabled = true;
+            }
+            else
+            {
+                comboBoxRAMSize3.Enabled = false;
+                comboBoxRAMSize3.SelectedIndex = -1;
+            }
+        }
+
+        private void checkBoxSlotNuber4_CheckedChanged(object sender, EventArgs e)
+        {
+            if (checkBoxSlotNuber4.Checked)
+            {
+                comboBoxRAMSize4.Enabled = true;
+            }
+            else
+            {
+                comboBoxRAMSize4.Enabled = false;
+                comboBoxRAMSize4.SelectedIndex = -1;
+            }
+        }
+
+        private void comboBox1_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            e.Handled = true;
         }
     }
 }

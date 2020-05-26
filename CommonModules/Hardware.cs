@@ -78,7 +78,9 @@ namespace CommonModules
         public Hardware(ref RAM[] rams, ref ROM[] roms, CPU cpu)
         {
             RAMs = rams;
+            RamSlotsNumber = rams.Length;
             ROMs = roms;
+            RomNumber = ROMs.Length;
             CPU = cpu;
         }
 
@@ -89,7 +91,7 @@ namespace CommonModules
             for (int i = 0; i < RamSlotsNumber; i++)
             {
                 uint adress = (uint)(i * ramSize);
-                RAMs[i] = new RAM(ramSize, adress);
+                RAMs[i] = new RAM(ramSize, adress, bitsDepth);
             }
 
             RomNumber = romNumber;
@@ -168,8 +170,10 @@ namespace CommonModules
         /// </summary>
         /// <param name="size">размер в байтах</param>
         /// <param name="adress">адрес начала физического блока</param>
-        public RAM(int size, UInt32 adress)
+        /// <param name="bitDepth">разрядность машины</param>
+        public RAM(int size, UInt32 adress, int bitDepth)
         {
+            BitDepth = bitDepth;
             PhysicalAdress = adress;
             Size = size;
             int count = Size / BitDepth;

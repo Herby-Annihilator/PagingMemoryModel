@@ -1,0 +1,14 @@
+D:\Проекты  в студии\PagingMemoryModel\SystemModel\bin\Debug\SystemModel.exe.config
+D:\Проекты  в студии\PagingMemoryModel\SystemModel\bin\Debug\SystemModel.exe
+D:\Проекты  в студии\PagingMemoryModel\SystemModel\bin\Debug\SystemModel.pdb
+D:\Проекты  в студии\PagingMemoryModel\SystemModel\bin\Debug\CommonModules.dll
+D:\Проекты  в студии\PagingMemoryModel\SystemModel\bin\Debug\CommonModules.pdb
+D:\Проекты  в студии\PagingMemoryModel\SystemModel\obj\Debug\SystemModel.csprojAssemblyReference.cache
+D:\Проекты  в студии\PagingMemoryModel\SystemModel\obj\Debug\SystemModel.CreateNewProcess.resources
+D:\Проекты  в студии\PagingMemoryModel\SystemModel\obj\Debug\SystemModel.Form1.resources
+D:\Проекты  в студии\PagingMemoryModel\SystemModel\obj\Debug\SystemModel.MainForm.resources
+D:\Проекты  в студии\PagingMemoryModel\SystemModel\obj\Debug\SystemModel.Properties.Resources.resources
+D:\Проекты  в студии\PagingMemoryModel\SystemModel\obj\Debug\SystemModel.csproj.GenerateResource.cache
+D:\Проекты  в студии\PagingMemoryModel\SystemModel\obj\Debug\SystemModel.csproj.CopyComplete
+D:\Проекты  в студии\PagingMemoryModel\SystemModel\obj\Debug\SystemModel.exe
+D:\Проекты  в студии\PagingMemoryModel\SystemModel\obj\Debug\SystemModel.pdb

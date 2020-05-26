@@ -96,6 +96,7 @@
             this.comboBoxPageSize.Name = "comboBoxPageSize";
             this.comboBoxPageSize.Size = new System.Drawing.Size(121, 21);
             this.comboBoxPageSize.TabIndex = 3;
+            this.comboBoxPageSize.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.comboBox1_KeyPress);
             // 
             // labelPageSize
             // 
@@ -116,6 +117,7 @@
             this.comboBox1.Name = "comboBox1";
             this.comboBox1.Size = new System.Drawing.Size(121, 21);
             this.comboBox1.TabIndex = 1;
+            this.comboBox1.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.comboBox1_KeyPress);
             // 
             // labelBitDepth
             // 
@@ -188,6 +190,7 @@
             this.comboBoxRAMSize4.Name = "comboBoxRAMSize4";
             this.comboBoxRAMSize4.Size = new System.Drawing.Size(121, 21);
             this.comboBoxRAMSize4.TabIndex = 9;
+            this.comboBoxRAMSize4.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.comboBox1_KeyPress);
             // 
             // comboBoxRAMSize3
             // 
@@ -201,6 +204,7 @@
             this.comboBoxRAMSize3.Name = "comboBoxRAMSize3";
             this.comboBoxRAMSize3.Size = new System.Drawing.Size(121, 21);
             this.comboBoxRAMSize3.TabIndex = 8;
+            this.comboBoxRAMSize3.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.comboBox1_KeyPress);
             // 
             // comboBoxRAMSize2
             // 
@@ -214,6 +218,7 @@
             this.comboBoxRAMSize2.Name = "comboBoxRAMSize2";
             this.comboBoxRAMSize2.Size = new System.Drawing.Size(121, 21);
             this.comboBoxRAMSize2.TabIndex = 7;
+            this.comboBoxRAMSize2.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.comboBox1_KeyPress);
             // 
             // comboBoxRAMSize1
             // 
@@ -226,6 +231,7 @@
             this.comboBoxRAMSize1.Name = "comboBoxRAMSize1";
             this.comboBoxRAMSize1.Size = new System.Drawing.Size(121, 21);
             this.comboBoxRAMSize1.TabIndex = 6;
+            this.comboBoxRAMSize1.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.comboBox1_KeyPress);
             // 
             // label2
             // 
@@ -254,6 +260,7 @@
             this.checkBoxSlotNuber4.TabIndex = 3;
             this.checkBoxSlotNuber4.Text = "4";
             this.checkBoxSlotNuber4.UseVisualStyleBackColor = true;
+            this.checkBoxSlotNuber4.CheckedChanged += new System.EventHandler(this.checkBoxSlotNuber4_CheckedChanged);
             // 
             // checkBoxSlotNuber3
             // 
@@ -264,6 +271,7 @@
             this.checkBoxSlotNuber3.TabIndex = 2;
             this.checkBoxSlotNuber3.Text = "3";
             this.checkBoxSlotNuber3.UseVisualStyleBackColor = true;
+            this.checkBoxSlotNuber3.CheckedChanged += new System.EventHandler(this.checkBoxSlotNuber3_CheckedChanged);
             // 
             // checkBoxSlotNuber2
             // 
@@ -274,6 +282,7 @@
             this.checkBoxSlotNuber2.TabIndex = 1;
             this.checkBoxSlotNuber2.Text = "2";
             this.checkBoxSlotNuber2.UseVisualStyleBackColor = true;
+            this.checkBoxSlotNuber2.CheckedChanged += new System.EventHandler(this.checkBoxSlotNuber2_CheckedChanged);
             // 
             // checkBoxSlotNuber1
             // 
@@ -286,10 +295,10 @@
             this.checkBoxSlotNuber1.TabIndex = 0;
             this.checkBoxSlotNuber1.Text = "1";
             this.checkBoxSlotNuber1.UseVisualStyleBackColor = true;
+            this.checkBoxSlotNuber1.CheckedChanged += new System.EventHandler(this.checkBoxSlotNuber1_CheckedChanged);
             // 
             // buttonAccept
             // 
-            this.buttonAccept.Enabled = false;
             this.buttonAccept.Location = new System.Drawing.Point(648, 533);
             this.buttonAccept.Name = "buttonAccept";
             this.buttonAccept.Size = new System.Drawing.Size(98, 23);

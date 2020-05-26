@@ -102,10 +102,6 @@
       <Project>{3fde6675-c43a-4a17-b9a3-b1aee79bfc94}</Project>
       <Name>CommonModules</Name>
     </ProjectReference>
-    <ProjectReference Include="..\SimpleModel\SimpleModel.csproj">
-      <Project>{4f8530f6-9093-45e6-a94f-62feb0bbcc9d}</Project>
-      <Name>SimpleModel</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

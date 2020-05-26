@@ -5,11 +5,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SimpleModel.PagingModel
+namespace CommonModules.PagingModel
 {
-    /// <summary>
-    /// Таблица страниц, инициализировать должна строго сама ОС вне этого класса
-    /// </summary>
     public class PageTable
     {
         /// <summary>
@@ -90,15 +87,23 @@ namespace SimpleModel.PagingModel
         public int Size { get { return PageTableEntries.Length; } }
 
 
-
-        public uint GetRealPhysicalAdress(ref BitArray[] bits, out bool isCorrect)
+        /// <summary>
+        /// Возвращает реальный физический адрес начала таблицы
+        /// </summary>
+        /// <param name="ram">ссылка на физический блок памяти</param>
+        /// <param name="isCorrect">флажок - если false, то результат не верен</param>
+        /// <returns></returns>
+        public uint GetRealPhysicalAdress(ref RAM ram, out bool isCorrect)
         {
             isCorrect = false;
-            if (this.bitArray.Equals(bits))
+            uint realPhysicalAdress = 0;
+            if (this.bitArray.Equals(ram.ByteCells))
             {
                 isCorrect = true;
+                uint offset = this.StartIndex * 4;
+                realPhysicalAdress = ram.PhysicalAdress + offset;
             }
-
+            return realPhysicalAdress;
         }
     }
 }
