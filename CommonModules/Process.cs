@@ -66,10 +66,11 @@ namespace CommonModules
         /// </summary>
         public PageTable PageTable { get; set; }
 
-        public void Run(ref Hardware hardware)
+        public void Run(ref Hardware hardware, int processIndexInList)
         {
-            Random random = new Random();
-            AccessPage(random.Next(0, PageTable.Size), hardware);
+            //Random random = new Random();
+            //AccessPage(random.Next(0, PageTable.Size), hardware, processIndexInList);
+            AccessPage(0, hardware, processIndexInList);
         }
 
         //
@@ -85,24 +86,26 @@ namespace CommonModules
         /// </summary>
         /// <param name="pageNumberInTable"></param>
         /// <param name="hardware"></param>
-        public void AccessPage(int pageNumberInTable, Hardware hardware)
+        public void AccessPage(int pageNumberInTable, Hardware hardware, int processIndexInList)
         {
             if (PageTable.PageTableEntries[pageNumberInTable].Present == false)
             {
-                throw new PageFault();
+                throw new PageFault("Сраница в памяти не найдена", pageNumberInTable, processIndexInList);
             }
             else
             {
                 for (int i = 0; i < hardware.RAMs.Length; i++)
                 {
                     uint endAdress = (uint)(hardware.RAMs[i].PhysicalAdress + hardware.RAMs[i].ByteCells.Length * 4); // потомучто криво и под 32 бита
-                    if (PageTable.PageTableEntries[pageNumberInTable].Adress >= hardware.RAMs[i].PhysicalAdress && PageTable.PageTableEntries[pageNumberInTable].Adress < endAdress)
+                    uint pageStartByte = (uint)PageTable.PageTableEntries[pageNumberInTable].Adress * 4096;   // номер страницы * размер страницы
+                    if (pageStartByte >= hardware.RAMs[i].PhysicalAdress && pageStartByte < endAdress)
                     {
-                        int blockNumber = PageTable.PageTableEntries[pageNumberInTable].Adress / 4;
-                        hardware.RAMs[i].ByteCells[blockNumber].Not();
+                        int pageStartBlockNumber = (int)(pageStartByte / 4);
+                        hardware.RAMs[i].ByteCells[pageStartBlockNumber].Not();
                         break;
                     }
                 }
+                PageTable.PageTableEntries[pageNumberInTable].Dirty = true;
             }
         }
 

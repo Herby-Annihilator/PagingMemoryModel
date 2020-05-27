@@ -43,11 +43,11 @@ namespace SystemModel
             OS.CreateNewProcess("systemDaemonB", 4096, 1);
             OS.CreateNewProcess("systemDaemonC", 4096, 1);
 
-            timer = new System.Timers.Timer(5000);
-            timer.Elapsed += os.StartNextProcess;
-            timer.Elapsed += DataGridVeiwUpdate;
-            timer.AutoReset = true;
-            timer.Enabled = true;
+            //timer = new System.Timers.Timer(5000);
+            //timer.Elapsed += os.StartNextProcess;
+            //timer.Elapsed += DataGridVeiwUpdate;
+            //timer.AutoReset = true;
+            //timer.Enabled = true;          
         }
 
         private void labelTableAdress_Click(object sender, EventArgs e)
@@ -79,7 +79,7 @@ namespace SystemModel
             if (pause)
             {
                 button2.Text = "Возобновить симуляцию";
-                timer.Stop();
+                //timer.Stop();
                 buttonCreateNewProcess.Enabled = true;
                 buttonDriveOutTheProcess.Enabled = true;
                 buttonKillProcess.Enabled = true;
@@ -93,7 +93,7 @@ namespace SystemModel
             else
             {
                 button2.Text = "Приостановить симуляцию";
-                timer.Start();
+                //timer.Start();
 
                 buttonCreateNewProcess.Enabled = false;
                 buttonDriveOutTheProcess.Enabled = false;
@@ -112,12 +112,12 @@ namespace SystemModel
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void DataGridVeiwUpdate(object sender, EventArgs e)
+        private void DataGridVeiwUpdate(/*object sender, EventArgs e*/)
         {
             int index = os.currentProcessNumber;
             if (index >= dataGridView1.Rows.Count)
             {
-                dataGridView1.Rows.Add();
+                dataGridView1.Invoke((MethodInvoker)delegate { dataGridView1.Rows.Add(); }); ;
             }
             dataGridView1.Rows[index].Cells[0].Value = os.CurrentProcess.Name;
             dataGridView1.Rows[index].Cells[1].Value = os.CurrentProcess.PID;
@@ -137,7 +137,12 @@ namespace SystemModel
                 }
             }
             BitArray bitArray = new BitArray(new int[] { (int)adress });
-            dataGridView1.Rows[index].Cells[6].Value = bitArray.ToString() + "(" + adress.ToString() + ")";
+
+            string str = os.GetBitArrayStringFormat(bitArray);
+            char[] rstr = str.ToCharArray();
+            Array.Reverse(rstr);
+
+            dataGridView1.Rows[index].Cells[6].Value = Convert.ToString(rstr) + "(" + adress.ToString() + ")";
         }
         /// <summary>
         /// Тыкаем на любую ячейку на главной таблице
@@ -159,7 +164,7 @@ namespace SystemModel
 
                     try
                     {
-                        bool isCorrect = false;
+                        //bool isCorrect = false;
                         uint adress = 0;
                         int pageTableSize = process.PageTable.Size;
                         for (int i = 0; i < pageTableSize; i++)
@@ -168,16 +173,17 @@ namespace SystemModel
 
                             for (int j = 0; j < Hardware.RAMs.Length; j++)
                             {
-                                adress = process.PageTable.GetRealPhysicalAdress(ref Hardware.RAMs[j], out isCorrect);
-                                if (isCorrect)
-                                {
-                                    break;
-                                }
+                                adress = (uint)process.PageTable.PageTableEntries[i].Adress * 4096;     // костыль
+                                //adress = process.PageTable.GetRealPhysicalAdress(ref Hardware.RAMs[j], out isCorrect);
+                                //if (isCorrect)
+                                //{
+                                //    break;
+                                //}
                             }
-                            if (!isCorrect)
-                            {
-                                throw new Exception("Ошибка при вычислении реального адреса таблицы");
-                            }
+                            //if (!isCorrect)
+                            //{
+                            //    throw new Exception("Ошибка при вычислении реального адреса таблицы");
+                            //}
 
                             dataGridView2.Rows[i].Cells[0].Value = adress;
                             dataGridView2.Rows[i].Cells[1].Value = process.PageTable.PageTableEntries[i].Present;
@@ -206,6 +212,14 @@ namespace SystemModel
                     textBox1.Text = dataGridView2.Rows[e.RowIndex].Cells[0].Value.ToString();
                 }
             }
+        }
+
+        private void buttonStep_Click(object sender, EventArgs e)
+        {
+            os.StartNextProcess();
+            DataGridVeiwUpdate();
+            os.CurrentProcess.PageTable.PageTableEntries[0].Present = false;
+            os.ChangeCurrentProcessNumber();
         }
     }
 }

@@ -99,16 +99,30 @@ namespace CommonModules
         /// <summary>
         /// Запускает следующий в списке процесс
         /// </summary>
-        public void StartNextProcess(object sender, System.Timers.ElapsedEventArgs e)
+        public void StartNextProcess(/*object sender, System.Timers.ElapsedEventArgs e*/)
         {
-            processes[currentProcessNumber].Run(ref hardware);
+            try
+            {
+                processes[currentProcessNumber].Run(ref hardware, currentProcessNumber);
+            }
+            catch(PageFault pageFault)
+            {
+                PageFaultExeptionHandler(processes[currentProcessNumber], pageFault.PageFaultNumber, pageFault.ProcessIndex);
+            }
+            //currentProcessNumber++;
+            //if (currentProcessNumber >= processes.Count)
+            //{
+            //    currentProcessNumber = 0;
+            //}
+        }
+        public void ChangeCurrentProcessNumber()
+        {
             currentProcessNumber++;
             if (currentProcessNumber >= processes.Count)
             {
                 currentProcessNumber = 0;
             }
         }
-
         /// <summary>
         /// Создает новый процесс
         /// </summary>
@@ -151,6 +165,7 @@ namespace CommonModules
                 for (int i = 0; i < recordCount; i++)
                 {
                     WritePageToDrive(writer, processes[processes.Count - 1].PageTable.PageTableEntries[i], i);
+                    processes[processes.Count - 1].WSClockEntryMirrors[i].WrittenIntoFile = true;
                 }
                 writer.Close();
             }
@@ -600,7 +615,7 @@ namespace CommonModules
         /// </summary>
         /// <param name="bitArray"></param>
         /// <returns></returns>
-        private string GetBitArrayStringFormat(BitArray bitArray)
+        public string GetBitArrayStringFormat(BitArray bitArray)
         {
             string toReturn = "";
             for (int i = 0; i < bitArray.Count; i++)
@@ -662,7 +677,7 @@ namespace CommonModules
                     int k = 0;
                     for (int i = startBitArrayBlock; i < endBitArrayBlock; i++)
                     {
-                        for (int j = 0; i < ram[i].Length; j++)
+                        for (int j = 0; j < ram[i].Length; j++)
                         {
                             if (bitBlocks[k][j] == '0')
                             {
@@ -711,7 +726,24 @@ namespace CommonModules
 
     public class PageFault : System.Exception
     {
+        /// <summary>
+        /// Сообщение об ошибке
+        /// </summary>
         public override string Message { get { return "Ошибка доступа к странице"; } }
+        /// <summary>
+        /// Номер страницы в таблице страниц, вызвавшей ошибку
+        /// </summary>
+        public int PageFaultNumber { get; set; }
+        /// <summary>
+        /// Индекс процесса в списке процессов
+        /// </summary>
+        public int ProcessIndex { get; set; }
+
+        public PageFault(string message, int pageFaultNumber, int processIndex) : base(message)
+        {
+            PageFaultNumber = pageFaultNumber;
+            ProcessIndex = processIndex;
+        }
     }
 
 

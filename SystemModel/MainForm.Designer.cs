@@ -65,6 +65,8 @@
             this.button1 = new System.Windows.Forms.Button();
             this.labelPID = new System.Windows.Forms.Label();
             this.textBoxPID = new System.Windows.Forms.TextBox();
+            this.toolStripStatusLabelCurrentAction = new System.Windows.Forms.ToolStripStatusLabel();
+            this.buttonStep = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             this.tableLayoutPanel1.SuspendLayout();
             this.tableLayoutPanel2.SuspendLayout();
@@ -198,6 +200,7 @@
             // 
             // groupBoxOS
             // 
+            this.groupBoxOS.Controls.Add(this.buttonStep);
             this.groupBoxOS.Controls.Add(this.button2);
             this.groupBoxOS.Controls.Add(this.groupBox1);
             this.groupBoxOS.Controls.Add(this.statusStrip1);
@@ -241,7 +244,8 @@
             // 
             this.statusStrip1.ImageScalingSize = new System.Drawing.Size(20, 20);
             this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.toolStripStatusLabel1});
+            this.toolStripStatusLabel1,
+            this.toolStripStatusLabelCurrentAction});
             this.statusStrip1.Location = new System.Drawing.Point(3, 413);
             this.statusStrip1.Name = "statusStrip1";
             this.statusStrip1.Size = new System.Drawing.Size(604, 22);
@@ -455,6 +459,21 @@
             this.textBoxPID.Size = new System.Drawing.Size(100, 20);
             this.textBoxPID.TabIndex = 0;
             // 
+            // toolStripStatusLabelCurrentAction
+            // 
+            this.toolStripStatusLabelCurrentAction.Name = "toolStripStatusLabelCurrentAction";
+            this.toolStripStatusLabelCurrentAction.Size = new System.Drawing.Size(0, 17);
+            // 
+            // buttonStep
+            // 
+            this.buttonStep.Location = new System.Drawing.Point(418, 80);
+            this.buttonStep.Name = "buttonStep";
+            this.buttonStep.Size = new System.Drawing.Size(75, 23);
+            this.buttonStep.TabIndex = 10;
+            this.buttonStep.Text = "Step";
+            this.buttonStep.UseVisualStyleBackColor = true;
+            this.buttonStep.Click += new System.EventHandler(this.buttonStep_Click);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -517,5 +536,7 @@
         private System.Windows.Forms.StatusStrip statusStrip1;
         private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel1;
         private System.Windows.Forms.Button button2;
+        private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabelCurrentAction;
+        private System.Windows.Forms.Button buttonStep;
     }
 }
