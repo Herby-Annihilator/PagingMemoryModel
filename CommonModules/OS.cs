@@ -103,11 +103,11 @@ namespace CommonModules
         {
             try
             {
-                processes[currentProcessNumber].Run(ref hardware, currentProcessNumber);
+                processes[currentProcessNumber].Run(ref hardware);
             }
             catch(PageFault pageFault)
             {
-                PageFaultExeptionHandler(processes[currentProcessNumber], pageFault.PageFaultNumber, pageFault.ProcessIndex);
+                PageFaultExeptionHandler(processes[currentProcessNumber], pageFault.PageFaultNumber);
             }
             //currentProcessNumber++;
             //if (currentProcessNumber >= processes.Count)
@@ -313,8 +313,7 @@ namespace CommonModules
         /// </summary>
         /// <param name="process">процесс, вызвавший ошибку</param>
         /// <param name="pageNumber">номер страницы в таблице страниц, обращение к которой вызвало ошибку</param>
-        /// <param name="processIndex">Индекс процесса в списке процессов</param>
-        public void PageFaultExeptionHandler(Process process, int pageNumber, int processIndex)
+        public void PageFaultExeptionHandler(Process process, int pageNumber)
         {
             bool memoryAllocated = false;
             if (process.PageTable.PageTableEntries[pageNumber].Adress == 0)
@@ -403,7 +402,7 @@ namespace CommonModules
                 //
 
                 // вычисляем физическое местоположение страницы, вызвавшей ошибку
-                int adress = process.PageTable.PageTableEntries[pageNumber].Adress;
+                int adress = process.PageTable.PageTableEntries[pageNumber].Adress * pageSize;
                 int ramBlockNumber = 0;
                 for (int j = 0; j < hardware.RAMs.Length; j++)
                 {
@@ -420,7 +419,7 @@ namespace CommonModules
                 if (!RestoreProcessPage(ref process, pageNumber, ref hardware.RAMs[ramBlockNumber].ByteCells, startBitArrayBlock, adress))
                 {
                     MessageBox.Show("Данные поцесса на диске не найдены. Процесс будет убит.", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    KillProcess(processIndex);
+                    KillProcess(process.PID);
                 }
             }
         }
@@ -454,9 +453,17 @@ namespace CommonModules
         /// "Убивает" процесс с указанным индексом в списке процессов
         /// </summary>
         /// <param name="processIndex"></param>
-        public void KillProcess(int processIndex)
+        public void KillProcess(int pid)
         {
-            
+            int processIndex = 0;
+            for (int i = 0; i < processes.Count; i++)
+            {
+                if (processes[i].PID == pid)
+                {
+                    processIndex = i;
+                    break;
+                }
+            }
             for (int i = 0; i < processes[processIndex].PageTable.Size; i++)
             {
                 //
@@ -567,6 +574,7 @@ namespace CommonModules
                         {
                             WritePageToDrive(writer, pageTableEntry, pageNumber);
                             isRewrite = true;
+                            reader.ReadLine(); // чтобы скипнуть содержиммое этой страницы
                         }
                         else
                         {
@@ -672,7 +680,7 @@ namespace CommonModules
                 if (number == pageIndexInPageTable)
                 {
                     string[] bitBlocks = reader.ReadLine().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                    process.PageTable.PageTableEntries[pageIndexInPageTable].Adress = newPageAdress;
+                    process.PageTable.PageTableEntries[pageIndexInPageTable].Adress = newPageAdress / pageSize;   // потому что номер страницы в общем адресном пространстве
                     int endBitArrayBlock = startBitArrayBlock + pageSize / (bitDepth / 8);     // 4096 байт / 4 байта = 128 блоков
                     int k = 0;
                     for (int i = startBitArrayBlock; i < endBitArrayBlock; i++)
@@ -734,15 +742,10 @@ namespace CommonModules
         /// Номер страницы в таблице страниц, вызвавшей ошибку
         /// </summary>
         public int PageFaultNumber { get; set; }
-        /// <summary>
-        /// Индекс процесса в списке процессов
-        /// </summary>
-        public int ProcessIndex { get; set; }
 
-        public PageFault(string message, int pageFaultNumber, int processIndex) : base(message)
+        public PageFault(string message, int pageFaultNumber) : base(message)
         {
             PageFaultNumber = pageFaultNumber;
-            ProcessIndex = processIndex;
         }
     }
 

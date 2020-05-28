@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using CommonModules;
 using System.Collections;
+using System.Threading;
 
 
 namespace SystemModel
@@ -32,9 +33,14 @@ namespace SystemModel
         /// Железо в данном компьютере
         /// </summary>
         public Hardware Hardware { get; set; }
+        /// <summary>
+        /// Ссылка на родителя
+        /// </summary>
+        public Form1 ParentForm { get; set; }
 
-        public MainForm(ref OS os, ref Hardware hardware)
+        public MainForm(ref OS os, ref Hardware hardware, Form1 form)
         {
+            ParentForm = form;
             InitializeComponent();
             OS = os;
             Hardware = hardware;
@@ -62,7 +68,8 @@ namespace SystemModel
         private void buttonCreateNewProcess_Click(object sender, EventArgs e)
         {
             createNewProcessForm = new CreateNewProcess(ref os);
-            createNewProcessForm.Show();
+            createNewProcessForm.ShowDialog();
+            //createNewProcessForm.Show();
         }
         /// <summary>
         /// Показывает, приостановлена или нет симуляция.
@@ -81,11 +88,9 @@ namespace SystemModel
                 button2.Text = "Возобновить симуляцию";
                 //timer.Stop();
                 buttonCreateNewProcess.Enabled = true;
-                buttonDriveOutTheProcess.Enabled = true;
                 buttonKillProcess.Enabled = true;
                 button1.Enabled = true;
 
-                textBoxDriveOutTheProcess.Enabled = true;
                 textBoxPIDkill.Enabled = true;              
 
                 groupBoxProcess.Enabled = true;
@@ -96,11 +101,9 @@ namespace SystemModel
                 //timer.Start();
 
                 buttonCreateNewProcess.Enabled = false;
-                buttonDriveOutTheProcess.Enabled = false;
                 buttonKillProcess.Enabled = false;
                 button1.Enabled = false;
 
-                textBoxDriveOutTheProcess.Enabled = false;
                 textBoxPIDkill.Enabled = false;
 
                 groupBoxProcess.Enabled = true;
@@ -139,10 +142,13 @@ namespace SystemModel
             BitArray bitArray = new BitArray(new int[] { (int)adress });
 
             string str = os.GetBitArrayStringFormat(bitArray);
-            char[] rstr = str.ToCharArray();
-            Array.Reverse(rstr);
+            string str1 = "";
+            for (int i = str.Length - 1; i >= 0; i--)
+            {
+                str1 += str[i];
+            }
 
-            dataGridView1.Rows[index].Cells[6].Value = Convert.ToString(rstr) + "(" + adress.ToString() + ")";
+            dataGridView1.Rows[index].Cells[6].Value = str1 + "(" + adress.ToString() + ")";
         }
         /// <summary>
         /// Тыкаем на любую ячейку на главной таблице
@@ -174,16 +180,9 @@ namespace SystemModel
                             for (int j = 0; j < Hardware.RAMs.Length; j++)
                             {
                                 adress = (uint)process.PageTable.PageTableEntries[i].Adress * 4096;     // костыль
-                                //adress = process.PageTable.GetRealPhysicalAdress(ref Hardware.RAMs[j], out isCorrect);
-                                //if (isCorrect)
-                                //{
-                                //    break;
-                                //}
                             }
-                            //if (!isCorrect)
-                            //{
-                            //    throw new Exception("Ошибка при вычислении реального адреса таблицы");
-                            //}
+
+
 
                             dataGridView2.Rows[i].Cells[0].Value = adress;
                             dataGridView2.Rows[i].Cells[1].Value = process.PageTable.PageTableEntries[i].Present;
@@ -220,6 +219,91 @@ namespace SystemModel
             DataGridVeiwUpdate();
             os.CurrentProcess.PageTable.PageTableEntries[0].Present = false;
             os.ChangeCurrentProcessNumber();
+        }
+
+        private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            ParentForm.Close();
+        }
+        /// <summary>
+        /// Имена процессов, которые не могут быть убиты
+        /// </summary>
+        private string[] CanNotBeKilled = new string[] { "systemDaemonA", "systemDaemonB", "systemDaemonC" };
+        /// <summary>
+        /// Кнопка "Убить процесс"
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void buttonKillProcess_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                Process process = os.GetCheckedProcess(Convert.ToInt32(this.textBoxPIDkill.Text));
+                if (process != null)
+                {
+                    bool isCorret = true;
+                    for (int i = 0; i < CanNotBeKilled.Length; i++)
+                    {
+                        if (process.Name == CanNotBeKilled[i])
+                        {
+                            isCorret = false;
+                            break;
+                        }
+                    }
+                    if (isCorret)
+                    {
+                        os.KillProcess(process.PID);
+                    }
+                    else
+                    {
+                        MessageBox.Show("Данный процесс не может быть убит", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    }
+                }
+                else
+                {
+                    MessageBox.Show("Такого процесса нет", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
+            }
+            catch(Exception e1)
+            {
+                MessageBox.Show("Поле напротив кнопки 'Убить процесс' имеет некорректное значение", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        }
+
+        private void textBoxPIDkill_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (!(e.KeyChar >= '0' && e.KeyChar <= '9' || e.KeyChar == (char)Keys.Back))
+            {
+                e.Handled = true;
+            }
+        }
+        /// <summary>
+        /// Кнопка "Обратиться к странице"
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void button1_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                this.toolStripStatusLabelCurrentAction.Text = "Обращение к странице";
+                int pageNumber = Convert.ToInt32(textBox1.Text);
+                Process process = os.GetCheckedProcess(Convert.ToInt32(textBoxPID.Text));
+                process.AccessPage(pageNumber, Hardware);
+                this.toolStripStatusLabelCurrentAction.Text = "";
+            }
+            catch(PageFault pageFault)
+            {
+                this.toolStripStatusLabelCurrentAction.Text = "Обрабатываю исключение PageFault";
+                os.PageFaultExeptionHandler(os.GetCheckedProcess(Convert.ToInt32(textBoxPID.Text)), pageFault.PageFaultNumber);
+                this.toolStripStatusLabelCurrentAction.Text = "";
+            }
+            catch(Exception e1)
+            {
+                MessageBox.Show(e1.Message, "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                this.toolStripStatusLabelCurrentAction.Text = "";
+            }
+            
         }
     }
 }

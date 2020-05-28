@@ -66,11 +66,11 @@ namespace CommonModules
         /// </summary>
         public PageTable PageTable { get; set; }
 
-        public void Run(ref Hardware hardware, int processIndexInList)
+        public void Run(ref Hardware hardware)
         {
             //Random random = new Random();
             //AccessPage(random.Next(0, PageTable.Size), hardware, processIndexInList);
-            AccessPage(0, hardware, processIndexInList);
+            AccessPage(0, hardware);
         }
 
         //
@@ -86,11 +86,11 @@ namespace CommonModules
         /// </summary>
         /// <param name="pageNumberInTable"></param>
         /// <param name="hardware"></param>
-        public void AccessPage(int pageNumberInTable, Hardware hardware, int processIndexInList)
+        public void AccessPage(int pageNumberInTable, Hardware hardware)
         {
             if (PageTable.PageTableEntries[pageNumberInTable].Present == false)
             {
-                throw new PageFault("Сраница в памяти не найдена", pageNumberInTable, processIndexInList);
+                throw new PageFault("Сраница в памяти не найдена", pageNumberInTable);
             }
             else
             {

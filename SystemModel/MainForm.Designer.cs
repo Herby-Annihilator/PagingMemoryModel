@@ -40,13 +40,12 @@
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
             this.tableLayoutPanel2 = new System.Windows.Forms.TableLayoutPanel();
             this.groupBoxOS = new System.Windows.Forms.GroupBox();
+            this.buttonStep = new System.Windows.Forms.Button();
             this.button2 = new System.Windows.Forms.Button();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
-            this.labelDriveOutTheProcess = new System.Windows.Forms.Label();
-            this.textBoxDriveOutTheProcess = new System.Windows.Forms.TextBox();
-            this.buttonDriveOutTheProcess = new System.Windows.Forms.Button();
+            this.toolStripStatusLabelCurrentAction = new System.Windows.Forms.ToolStripStatusLabel();
             this.labelPIDkill = new System.Windows.Forms.Label();
             this.textBoxPIDkill = new System.Windows.Forms.TextBox();
             this.buttonKillProcess = new System.Windows.Forms.Button();
@@ -65,8 +64,6 @@
             this.button1 = new System.Windows.Forms.Button();
             this.labelPID = new System.Windows.Forms.Label();
             this.textBoxPID = new System.Windows.Forms.TextBox();
-            this.toolStripStatusLabelCurrentAction = new System.Windows.Forms.ToolStripStatusLabel();
-            this.buttonStep = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             this.tableLayoutPanel1.SuspendLayout();
             this.tableLayoutPanel2.SuspendLayout();
@@ -204,9 +201,6 @@
             this.groupBoxOS.Controls.Add(this.button2);
             this.groupBoxOS.Controls.Add(this.groupBox1);
             this.groupBoxOS.Controls.Add(this.statusStrip1);
-            this.groupBoxOS.Controls.Add(this.labelDriveOutTheProcess);
-            this.groupBoxOS.Controls.Add(this.textBoxDriveOutTheProcess);
-            this.groupBoxOS.Controls.Add(this.buttonDriveOutTheProcess);
             this.groupBoxOS.Controls.Add(this.labelPIDkill);
             this.groupBoxOS.Controls.Add(this.textBoxPIDkill);
             this.groupBoxOS.Controls.Add(this.buttonKillProcess);
@@ -218,6 +212,16 @@
             this.groupBoxOS.TabIndex = 0;
             this.groupBoxOS.TabStop = false;
             this.groupBoxOS.Text = "Отдать команду ОС";
+            // 
+            // buttonStep
+            // 
+            this.buttonStep.Location = new System.Drawing.Point(6, 142);
+            this.buttonStep.Name = "buttonStep";
+            this.buttonStep.Size = new System.Drawing.Size(122, 35);
+            this.buttonStep.TabIndex = 10;
+            this.buttonStep.Text = "Step";
+            this.buttonStep.UseVisualStyleBackColor = true;
+            this.buttonStep.Click += new System.EventHandler(this.buttonStep_Click);
             // 
             // button2
             // 
@@ -258,30 +262,10 @@
             this.toolStripStatusLabel1.Size = new System.Drawing.Size(173, 17);
             this.toolStripStatusLabel1.Text = "Выполняю в данный момент: ";
             // 
-            // labelDriveOutTheProcess
+            // toolStripStatusLabelCurrentAction
             // 
-            this.labelDriveOutTheProcess.AutoSize = true;
-            this.labelDriveOutTheProcess.Location = new System.Drawing.Point(266, 156);
-            this.labelDriveOutTheProcess.Name = "labelDriveOutTheProcess";
-            this.labelDriveOutTheProcess.Size = new System.Drawing.Size(25, 13);
-            this.labelDriveOutTheProcess.TabIndex = 6;
-            this.labelDriveOutTheProcess.Text = "PID";
-            // 
-            // textBoxDriveOutTheProcess
-            // 
-            this.textBoxDriveOutTheProcess.Location = new System.Drawing.Point(146, 153);
-            this.textBoxDriveOutTheProcess.Name = "textBoxDriveOutTheProcess";
-            this.textBoxDriveOutTheProcess.Size = new System.Drawing.Size(114, 20);
-            this.textBoxDriveOutTheProcess.TabIndex = 5;
-            // 
-            // buttonDriveOutTheProcess
-            // 
-            this.buttonDriveOutTheProcess.Location = new System.Drawing.Point(6, 147);
-            this.buttonDriveOutTheProcess.Name = "buttonDriveOutTheProcess";
-            this.buttonDriveOutTheProcess.Size = new System.Drawing.Size(122, 30);
-            this.buttonDriveOutTheProcess.TabIndex = 4;
-            this.buttonDriveOutTheProcess.Text = "Вытеснить процесс";
-            this.buttonDriveOutTheProcess.UseVisualStyleBackColor = true;
+            this.toolStripStatusLabelCurrentAction.Name = "toolStripStatusLabelCurrentAction";
+            this.toolStripStatusLabelCurrentAction.Size = new System.Drawing.Size(0, 17);
             // 
             // labelPIDkill
             // 
@@ -298,6 +282,7 @@
             this.textBoxPIDkill.Name = "textBoxPIDkill";
             this.textBoxPIDkill.Size = new System.Drawing.Size(114, 20);
             this.textBoxPIDkill.TabIndex = 2;
+            this.textBoxPIDkill.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.textBoxPIDkill_KeyPress);
             // 
             // buttonKillProcess
             // 
@@ -307,6 +292,7 @@
             this.buttonKillProcess.TabIndex = 1;
             this.buttonKillProcess.Text = "Убить процесс";
             this.buttonKillProcess.UseVisualStyleBackColor = true;
+            this.buttonKillProcess.Click += new System.EventHandler(this.buttonKillProcess_Click);
             // 
             // buttonCreateNewProcess
             // 
@@ -409,7 +395,7 @@
             // labelTableAdress
             // 
             this.labelTableAdress.AutoSize = true;
-            this.labelTableAdress.Location = new System.Drawing.Point(331, 16);
+            this.labelTableAdress.Location = new System.Drawing.Point(256, 17);
             this.labelTableAdress.Name = "labelTableAdress";
             this.labelTableAdress.Size = new System.Drawing.Size(84, 13);
             this.labelTableAdress.TabIndex = 8;
@@ -417,12 +403,12 @@
             // 
             // textBoxTableAdress
             // 
-            this.textBoxTableAdress.BackColor = System.Drawing.SystemColors.ButtonHighlight;
+            this.textBoxTableAdress.BackColor = System.Drawing.SystemColors.Window;
             this.textBoxTableAdress.Enabled = false;
-            this.textBoxTableAdress.Location = new System.Drawing.Point(435, 13);
+            this.textBoxTableAdress.Location = new System.Drawing.Point(346, 13);
             this.textBoxTableAdress.Name = "textBoxTableAdress";
             this.textBoxTableAdress.ReadOnly = true;
-            this.textBoxTableAdress.Size = new System.Drawing.Size(150, 20);
+            this.textBoxTableAdress.Size = new System.Drawing.Size(239, 20);
             this.textBoxTableAdress.TabIndex = 7;
             this.textBoxTableAdress.Click += new System.EventHandler(this.labelTableAdress_Click);
             // 
@@ -441,6 +427,7 @@
             this.button1.TabIndex = 2;
             this.button1.Text = "Обратиться к странице";
             this.button1.UseVisualStyleBackColor = true;
+            this.button1.Click += new System.EventHandler(this.button1_Click);
             // 
             // labelPID
             // 
@@ -459,21 +446,6 @@
             this.textBoxPID.Size = new System.Drawing.Size(100, 20);
             this.textBoxPID.TabIndex = 0;
             // 
-            // toolStripStatusLabelCurrentAction
-            // 
-            this.toolStripStatusLabelCurrentAction.Name = "toolStripStatusLabelCurrentAction";
-            this.toolStripStatusLabelCurrentAction.Size = new System.Drawing.Size(0, 17);
-            // 
-            // buttonStep
-            // 
-            this.buttonStep.Location = new System.Drawing.Point(418, 80);
-            this.buttonStep.Name = "buttonStep";
-            this.buttonStep.Size = new System.Drawing.Size(75, 23);
-            this.buttonStep.TabIndex = 10;
-            this.buttonStep.Text = "Step";
-            this.buttonStep.UseVisualStyleBackColor = true;
-            this.buttonStep.Click += new System.EventHandler(this.buttonStep_Click);
-            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -482,6 +454,7 @@
             this.Controls.Add(this.tableLayoutPanel1);
             this.Name = "MainForm";
             this.Text = "MainForm";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainForm_FormClosing);
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).EndInit();
             this.tableLayoutPanel1.ResumeLayout(false);
             this.tableLayoutPanel2.ResumeLayout(false);
@@ -525,9 +498,6 @@
         private System.Windows.Forms.Button button1;
         private System.Windows.Forms.Label labelPID;
         private System.Windows.Forms.TextBox textBoxPID;
-        private System.Windows.Forms.Label labelDriveOutTheProcess;
-        private System.Windows.Forms.TextBox textBoxDriveOutTheProcess;
-        private System.Windows.Forms.Button buttonDriveOutTheProcess;
         private System.Windows.Forms.Label labelPIDkill;
         private System.Windows.Forms.TextBox textBoxPIDkill;
         private System.Windows.Forms.Button buttonKillProcess;

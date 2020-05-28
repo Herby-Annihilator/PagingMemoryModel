@@ -34,7 +34,7 @@ namespace SystemModel
                 label3.Show();
                 textBoxName.Focus();
             }
-            else if (string.IsNullOrEmpty(textBoxNecessaryMemory.Text))
+            else if (string.IsNullOrEmpty(textBoxNecessaryMemory.Text) || !Int32.TryParse(textBoxNecessaryMemory.Text, out int memory))
             {
                 label3.Text = "Некорректное значение количества памяти";
                 label3.Show();
@@ -49,6 +49,9 @@ namespace SystemModel
             else
             {
                 os.CreateNewProcess(textBoxName.Text, Convert.ToInt32(textBoxNecessaryMemory.Text), Convert.ToInt32(textBoxPriority.Text));
+                textBoxName.Clear();
+                textBoxNecessaryMemory.Clear();
+                textBoxPriority.Clear();
             }
         }
         /// <summary>
@@ -58,9 +61,9 @@ namespace SystemModel
         /// <param name="e"></param>
         private void textBoxPriority_KeyPress(object sender, KeyPressEventArgs e)
         {
-            if (e.KeyChar < '0' || e.KeyChar > '9')
+            if (!(e.KeyChar >= '0' && e.KeyChar <= '9' || e.KeyChar == (char)Keys.Back))
             {
-                e.Handled = false;
+                e.Handled = true;
             }
             label3.Hide();
         }
@@ -68,6 +71,11 @@ namespace SystemModel
         private void textBoxName_KeyPress(object sender, KeyPressEventArgs e)
         {
             label3.Hide();
+        }
+
+        private void buttoncCncellation_Click(object sender, EventArgs e)
+        {
+            this.Close();
         }
     }
 }

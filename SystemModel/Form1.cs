@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using CommonModules;
+using System.Threading;
 
 namespace SystemModel
 {
@@ -81,11 +82,12 @@ namespace SystemModel
             }
             Hardware hardware = new Hardware(ref rams, ref roms, cpu);
             OS os = new OS(Convert.ToInt32(comboBox1.Text), hardware, Convert.ToInt32(comboBoxPageSize.Text));
-            mainForm = new MainForm(ref os, ref hardware);
+            mainForm = new MainForm(ref os, ref hardware, this);
 
 
             this.Hide();
-
+            //this.Close();
+            //Thread thread = new Thread(new ThreadStart(mainForm.Show));
             mainForm.Show();
         }
 
