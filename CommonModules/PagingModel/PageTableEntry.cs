@@ -13,6 +13,10 @@ namespace CommonModules.PagingModel
     public class PageTableEntry
     {
         /// <summary>
+        /// Возвращает BitArray, который соответствует данной записи
+        /// </summary>
+        public BitArray Entry { get { return entry; } }
+        /// <summary>
         /// Cсылка на существующий кусок памяти
         /// </summary>
         private BitArray entry;

@@ -20,7 +20,7 @@ namespace CommonModules
         /// <summary>
         /// Число байт в странице
         /// </summary>
-        private int pageSize;
+        public int PageSize { get; set; }
         /// <summary>
         /// Железо
         /// </summary>
@@ -67,7 +67,8 @@ namespace CommonModules
         /// <param name="pageSize">размер страницы</param>
         public OS(int bitDepth, Hardware hardware, int pageSize)
         {
-            this.pageSize = pageSize;
+            PageMaxAge = 70;
+            this.PageSize = pageSize;
             BitDepth = bitDepth;
             this.hardware = hardware;
             int freePageCount = 0;
@@ -141,7 +142,7 @@ namespace CommonModules
                 //
                 // инициализировать таблицу страниц
                 //               
-                int pageCountToInit = memory / pageSize;
+                int pageCountToInit = memory / PageSize;
                 if (FreePages.Count >= pageCountToInit)
                 {
                     for (int i = 0; i < pageCountToInit; i++)
@@ -187,14 +188,14 @@ namespace CommonModules
         /// <returns></returns>
         private ref BitArray[] GetFreePages(int[] indexesInFreePageList, out uint offset)
         {
-            uint firstPageAdress = (uint)FreePages[indexesInFreePageList[0]] * (uint)pageSize;
+            uint firstPageAdress = (uint)FreePages[indexesInFreePageList[0]] * (uint)PageSize;
             offset = firstPageAdress / (uint)(bitDepth / 8);   // начало блока размером в 32(64) бита
             for (int i = 0; i < hardware.RAMs.Length; i++)
             {
                 uint physicalEndAdress = hardware.RAMs[i].PhysicalAdress + (uint)(hardware.RAMs[i].ByteCells.Length * bitDepth / 8);
                 if (firstPageAdress >= hardware.RAMs[i].PhysicalAdress && firstPageAdress < physicalEndAdress)
                 {
-                    uint lastPageAdress = (uint)FreePages[indexesInFreePageList[indexesInFreePageList.Length - 1]] * (uint)pageSize;
+                    uint lastPageAdress = (uint)FreePages[indexesInFreePageList[indexesInFreePageList.Length - 1]] * (uint)PageSize;
                     //
                     // это смежные блоки памяти, рсположенные на одной физической плашке
                     //
@@ -267,8 +268,8 @@ namespace CommonModules
         /// <returns></returns>
         private int PageNumberForTable(int memory)
         {
-            int pageCount = memory / pageSize; // число страниц которое нужно отобразить
-            int recordCount = pageSize / (BitDepth / 8);  // число записей по 32(64) бита, которое помещается в страницу
+            int pageCount = memory / PageSize; // число страниц которое нужно отобразить
+            int recordCount = PageSize / (BitDepth / 8);  // число записей по 32(64) бита, которое помещается в страницу
             if (pageCount % recordCount > 0)
             {
                 return pageCount / recordCount + 1;
@@ -402,7 +403,7 @@ namespace CommonModules
                 //
 
                 // вычисляем физическое местоположение страницы, вызвавшей ошибку
-                int adress = process.PageTable.PageTableEntries[pageNumber].Adress * pageSize;
+                int adress = process.PageTable.PageTableEntries[pageNumber].Adress * PageSize;
                 int ramBlockNumber = 0;
                 for (int j = 0; j < hardware.RAMs.Length; j++)
                 {
@@ -447,7 +448,7 @@ namespace CommonModules
         /// <returns></returns>
         private uint ConvertToRealPhysicalAdress(int pageAdressInPageTableEntry)
         {
-            return (uint)((uint)pageAdressInPageTableEntry * pageSize);
+            return (uint)((uint)pageAdressInPageTableEntry * PageSize);
         }
         /// <summary>
         /// "Убивает" процесс с указанным индексом в списке процессов
@@ -494,7 +495,7 @@ namespace CommonModules
             //
             // Тут по хорошему надо бы проверку на значение isCorrect, но не буду делать (посмотрим, что получится)
             //
-            int pageCount = processes[processIndex].PageTable.Size * (bitDepth / 8) / pageSize;
+            int pageCount = processes[processIndex].PageTable.Size * (bitDepth / 8) / PageSize;
             for (int i = 0; i < pageCount; i++)
             {
                 int pageNumber = ConvertRealAdressToPageNumber(realAdress);
@@ -510,7 +511,7 @@ namespace CommonModules
         }
         private int ConvertRealAdressToPageNumber(uint adress)
         {
-            return (int)(adress / pageSize);
+            return (int)(adress / PageSize);
         }
         /// <summary>
         /// Очищает физическую страницу
@@ -521,7 +522,7 @@ namespace CommonModules
         private void ClearPage(ref BitArray[] ram, uint physicalStartAdress, uint pageStartAdress)
         {
             int startBitArrayBlock = ((int)(pageStartAdress - physicalStartAdress) / (bitDepth / 8));
-            int numberOfBitsBlocks = pageSize / bitDepth;
+            int numberOfBitsBlocks = PageSize / bitDepth;
             for (int i = startBitArrayBlock; i < numberOfBitsBlocks; i++)
             {
                 ram[i].SetAll(false);
@@ -601,14 +602,14 @@ namespace CommonModules
         }
         private void WritePageToDrive(TextWriter writer, PageTableEntry pageTableEntry, int pageIndexInPageTable)
         {
-            uint adress = (uint)(pageTableEntry.Adress * pageSize);
+            uint adress = (uint)(pageTableEntry.Adress * PageSize);
             for (int i = 0; i < hardware.RAMs.Length; i++)
             {
                 uint endPhisycalAdress = hardware.RAMs[i].PhysicalAdress + (uint)(hardware.RAMs[i].ByteCells.Length * (bitDepth / 8));
                 if (adress >= hardware.RAMs[i].PhysicalAdress && adress < endPhisycalAdress)
                 {
                     uint pageStartIndex = (adress - hardware.RAMs[i].PhysicalAdress) / (uint)(bitDepth / 8);  // стартовый индекс BitArray, с которого начинается страница
-                    uint pageEndIndex = pageStartIndex + (uint)pageSize / 4;   // блоки по 32 бита
+                    uint pageEndIndex = pageStartIndex + (uint)PageSize / 4;   // блоки по 32 бита
                     writer.WriteLine("[ " + pageIndexInPageTable + " ]");
                     for (uint j = pageStartIndex; j < pageEndIndex; j++)
                     {
@@ -680,8 +681,8 @@ namespace CommonModules
                 if (number == pageIndexInPageTable)
                 {
                     string[] bitBlocks = reader.ReadLine().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                    process.PageTable.PageTableEntries[pageIndexInPageTable].Adress = newPageAdress / pageSize;   // потому что номер страницы в общем адресном пространстве
-                    int endBitArrayBlock = startBitArrayBlock + pageSize / (bitDepth / 8);     // 4096 байт / 4 байта = 128 блоков
+                    process.PageTable.PageTableEntries[pageIndexInPageTable].Adress = newPageAdress / PageSize;   // потому что номер страницы в общем адресном пространстве
+                    int endBitArrayBlock = startBitArrayBlock + PageSize / (bitDepth / 8);     // 4096 байт / 4 байта = 128 блоков
                     int k = 0;
                     for (int i = startBitArrayBlock; i < endBitArrayBlock; i++)
                     {

@@ -36,11 +36,11 @@ namespace CommonModules
         /// <summary>
         /// Доступная память (байт)
         /// </summary>
-        public int AvailableMemory { get; private set; }
+        public int AvailableMemory { get; set; }
         /// <summary>
         /// Реально используемая память (байт)
         /// </summary>
-        public int UsedMemory { get; private set; }
+        public int UsedMemory { get; set; }
 
         public Process(string name, int memory, int pid, int priority, ref PageTable pageTable)
         {
@@ -114,7 +114,11 @@ namespace CommonModules
     /// Состояние процесса
     /// </summary>
     public enum Status
-    { 
+    {
+        /// <summary>
+        /// Исполняется
+        /// </summary>
+        IsPerformed,
         /// <summary>
         /// В очереди
         /// </summary>

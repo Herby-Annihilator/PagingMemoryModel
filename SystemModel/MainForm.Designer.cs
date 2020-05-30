@@ -40,9 +40,13 @@
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
             this.tableLayoutPanel2 = new System.Windows.Forms.TableLayoutPanel();
             this.groupBoxOS = new System.Windows.Forms.GroupBox();
+            this.label2 = new System.Windows.Forms.Label();
+            this.textBoxPIDtoStart = new System.Windows.Forms.TextBox();
+            this.buttonStartProcess = new System.Windows.Forms.Button();
+            this.labelListing = new System.Windows.Forms.Label();
+            this.textBoxListing = new System.Windows.Forms.TextBox();
             this.buttonStep = new System.Windows.Forms.Button();
             this.button2 = new System.Windows.Forms.Button();
-            this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStripStatusLabelCurrentAction = new System.Windows.Forms.ToolStripStatusLabel();
@@ -58,6 +62,8 @@
             this.ReadWrite = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.UserSupervisor = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.panel1 = new System.Windows.Forms.Panel();
+            this.label1 = new System.Windows.Forms.Label();
+            this.textBoxPageTableEntry = new System.Windows.Forms.TextBox();
             this.labelTableAdress = new System.Windows.Forms.Label();
             this.textBoxTableAdress = new System.Windows.Forms.TextBox();
             this.textBox1 = new System.Windows.Forms.TextBox();
@@ -197,9 +203,13 @@
             // 
             // groupBoxOS
             // 
+            this.groupBoxOS.Controls.Add(this.label2);
+            this.groupBoxOS.Controls.Add(this.textBoxPIDtoStart);
+            this.groupBoxOS.Controls.Add(this.buttonStartProcess);
+            this.groupBoxOS.Controls.Add(this.labelListing);
+            this.groupBoxOS.Controls.Add(this.textBoxListing);
             this.groupBoxOS.Controls.Add(this.buttonStep);
             this.groupBoxOS.Controls.Add(this.button2);
-            this.groupBoxOS.Controls.Add(this.groupBox1);
             this.groupBoxOS.Controls.Add(this.statusStrip1);
             this.groupBoxOS.Controls.Add(this.labelPIDkill);
             this.groupBoxOS.Controls.Add(this.textBoxPIDkill);
@@ -213,6 +223,57 @@
             this.groupBoxOS.TabStop = false;
             this.groupBoxOS.Text = "Отдать команду ОС";
             // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(275, 193);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(25, 13);
+            this.label2.TabIndex = 15;
+            this.label2.Text = "PID";
+            // 
+            // textBoxPIDtoStart
+            // 
+            this.textBoxPIDtoStart.Location = new System.Drawing.Point(306, 190);
+            this.textBoxPIDtoStart.Name = "textBoxPIDtoStart";
+            this.textBoxPIDtoStart.Size = new System.Drawing.Size(114, 20);
+            this.textBoxPIDtoStart.TabIndex = 14;
+            // 
+            // buttonStartProcess
+            // 
+            this.buttonStartProcess.Enabled = false;
+            this.buttonStartProcess.Location = new System.Drawing.Point(426, 183);
+            this.buttonStartProcess.Name = "buttonStartProcess";
+            this.buttonStartProcess.Size = new System.Drawing.Size(178, 32);
+            this.buttonStartProcess.TabIndex = 13;
+            this.buttonStartProcess.Text = "Запустить выбранный процесс";
+            this.buttonStartProcess.UseVisualStyleBackColor = true;
+            this.buttonStartProcess.Click += new System.EventHandler(this.buttonStartProcess_Click);
+            // 
+            // labelListing
+            // 
+            this.labelListing.AutoSize = true;
+            this.labelListing.Location = new System.Drawing.Point(7, 202);
+            this.labelListing.Name = "labelListing";
+            this.labelListing.Size = new System.Drawing.Size(161, 13);
+            this.labelListing.TabIndex = 12;
+            this.labelListing.Text = "Отчет о работе процесса и ОС";
+            // 
+            // textBoxListing
+            // 
+            this.textBoxListing.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.textBoxListing.BackColor = System.Drawing.SystemColors.ButtonHighlight;
+            this.textBoxListing.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.textBoxListing.Enabled = false;
+            this.textBoxListing.Location = new System.Drawing.Point(7, 221);
+            this.textBoxListing.Multiline = true;
+            this.textBoxListing.Name = "textBoxListing";
+            this.textBoxListing.ReadOnly = true;
+            this.textBoxListing.Size = new System.Drawing.Size(597, 189);
+            this.textBoxListing.TabIndex = 11;
+            // 
             // buttonStep
             // 
             this.buttonStep.Location = new System.Drawing.Point(6, 142);
@@ -225,24 +286,13 @@
             // 
             // button2
             // 
-            this.button2.Location = new System.Drawing.Point(391, 147);
+            this.button2.Location = new System.Drawing.Point(391, 32);
             this.button2.Name = "button2";
             this.button2.Size = new System.Drawing.Size(213, 30);
             this.button2.TabIndex = 9;
-            this.button2.Text = "Приостановить симуляцию";
+            this.button2.Text = "Взаимодействие с ОС/Процессом";
             this.button2.UseVisualStyleBackColor = true;
             this.button2.Click += new System.EventHandler(this.button2_Click);
-            // 
-            // groupBox1
-            // 
-            this.groupBox1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.groupBox1.Location = new System.Drawing.Point(6, 195);
-            this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(601, 215);
-            this.groupBox1.TabIndex = 8;
-            this.groupBox1.TabStop = false;
-            this.groupBox1.Text = "Детальное взаимодействие ОС и процесса";
             // 
             // statusStrip1
             // 
@@ -380,6 +430,8 @@
             // 
             // panel1
             // 
+            this.panel1.Controls.Add(this.label1);
+            this.panel1.Controls.Add(this.textBoxPageTableEntry);
             this.panel1.Controls.Add(this.labelTableAdress);
             this.panel1.Controls.Add(this.textBoxTableAdress);
             this.panel1.Controls.Add(this.textBox1);
@@ -391,6 +443,26 @@
             this.panel1.Name = "panel1";
             this.panel1.Size = new System.Drawing.Size(598, 245);
             this.panel1.TabIndex = 1;
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(16, 182);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(254, 13);
+            this.label1.TabIndex = 10;
+            this.label1.Text = "Реальное состояние элемента таблицы страниц";
+            // 
+            // textBoxPageTableEntry
+            // 
+            this.textBoxPageTableEntry.BackColor = System.Drawing.SystemColors.ButtonHighlight;
+            this.textBoxPageTableEntry.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.textBoxPageTableEntry.Enabled = false;
+            this.textBoxPageTableEntry.Location = new System.Drawing.Point(16, 202);
+            this.textBoxPageTableEntry.Name = "textBoxPageTableEntry";
+            this.textBoxPageTableEntry.ReadOnly = true;
+            this.textBoxPageTableEntry.Size = new System.Drawing.Size(569, 20);
+            this.textBoxPageTableEntry.TabIndex = 9;
             // 
             // labelTableAdress
             // 
@@ -502,11 +574,17 @@
         private System.Windows.Forms.TextBox textBoxPIDkill;
         private System.Windows.Forms.Button buttonKillProcess;
         private System.Windows.Forms.Button buttonCreateNewProcess;
-        private System.Windows.Forms.GroupBox groupBox1;
         private System.Windows.Forms.StatusStrip statusStrip1;
         private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel1;
         private System.Windows.Forms.Button button2;
         private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabelCurrentAction;
         private System.Windows.Forms.Button buttonStep;
+        private System.Windows.Forms.TextBox textBoxPageTableEntry;
+        private System.Windows.Forms.Label labelListing;
+        private System.Windows.Forms.TextBox textBoxListing;
+        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.TextBox textBoxPIDtoStart;
+        private System.Windows.Forms.Button buttonStartProcess;
     }
 }

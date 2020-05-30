@@ -74,7 +74,7 @@ namespace SystemModel
         /// <summary>
         /// Показывает, приостановлена или нет симуляция.
         /// </summary>
-        private bool pause = false;
+        private bool OSmode = true;
         /// <summary>
         /// Приостановить/возобновить симуляцию
         /// </summary>
@@ -82,27 +82,29 @@ namespace SystemModel
         /// <param name="e"></param>
         private void button2_Click(object sender, EventArgs e)
         {
-            pause = !pause;
-            if (pause)
+            OSmode = !OSmode;
+            if (OSmode)
             {
-                button2.Text = "Возобновить симуляцию";
+
                 //timer.Stop();
                 buttonCreateNewProcess.Enabled = true;
                 buttonKillProcess.Enabled = true;
                 button1.Enabled = true;
+                buttonStartProcess.Enabled = true;
 
                 textBoxPIDkill.Enabled = true;              
 
-                groupBoxProcess.Enabled = true;
+                groupBoxProcess.Enabled = false;
             }
             else
             {
-                button2.Text = "Приостановить симуляцию";
+
                 //timer.Start();
 
                 buttonCreateNewProcess.Enabled = false;
                 buttonKillProcess.Enabled = false;
                 button1.Enabled = false;
+                buttonStartProcess.Enabled = false;
 
                 textBoxPIDkill.Enabled = false;
 
@@ -163,6 +165,7 @@ namespace SystemModel
                 {
                     textBoxPID.Text = dataGridView1.Rows[e.RowIndex].Cells[1].Value.ToString();
                     textBoxTableAdress.Text = dataGridView1.Rows[e.RowIndex].Cells[6].Value.ToString();
+                    textBoxPIDtoStart.Text = dataGridView1.Rows[e.RowIndex].Cells[1].Value.ToString();
 
                     dataGridView2.Rows.Clear();
 
@@ -209,6 +212,8 @@ namespace SystemModel
                 if (e.RowIndex < dataGridView2.Rows.Count)
                 {
                     textBox1.Text = dataGridView2.Rows[e.RowIndex].Cells[0].Value.ToString();
+                    Process process = os.GetCheckedProcess(Convert.ToInt32(textBoxPID.Text));
+                    textBoxPageTableEntry.Text = os.GetBitArrayStringFormat(process.PageTable.PageTableEntries[e.RowIndex].Entry);
                 }
             }
         }
@@ -287,7 +292,7 @@ namespace SystemModel
             try
             {
                 this.toolStripStatusLabelCurrentAction.Text = "Обращение к странице";
-                int pageNumber = Convert.ToInt32(textBox1.Text);
+                int pageNumber = Convert.ToInt32(textBox1.Text) / os.PageSize;
                 Process process = os.GetCheckedProcess(Convert.ToInt32(textBoxPID.Text));
                 process.AccessPage(pageNumber, Hardware);
                 this.toolStripStatusLabelCurrentAction.Text = "";
@@ -304,6 +309,95 @@ namespace SystemModel
                 this.toolStripStatusLabelCurrentAction.Text = "";
             }
             
+        }
+        /// <summary>
+        /// Запускаем процесс
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void buttonStartProcess_Click(object sender, EventArgs e)
+        {
+            Process process = os.GetCheckedProcess(Convert.ToInt32(textBoxPIDtoStart.Text));
+            Random random = new Random();
+            int numberOfStarts = random.Next(100, 500);
+            int numberOfMisses = 0;
+            int maxNumberOfMisses = process.WSClockEntryMirrors.Count * 3;
+            int numberOfBitChanges = 0;
+
+            int numberOfNewlySelectedPages;  // количество вновь выделенных страниц
+            int numberOfReplacedPages;  // количество замещенных страниц 
+            int StartAvailableMemory = process.AvailableMemory;
+
+            System.Diagnostics.Stopwatch stopwatch = new System.Diagnostics.Stopwatch();
+            long time = 0;
+
+            for (int i = 0; i < numberOfStarts; i++)
+            {
+                process.CurrentVirtualTime += 10;   // пусть это будет кол-во миллисекунд
+                if (process.CurrentVirtualTime % 20 == 0)   // пусть раз в 20 миллисекунд биты изменения и обращения будут обновляться
+                {
+                    numberOfBitChanges++;
+                    // обновляем биты обращения и модификации
+                    for(int k = 0; k < process.WSClockEntryMirrors.Count; k++)
+                    {
+                        process.WSClockEntryMirrors[k].Modified = false;
+                        process.WSClockEntryMirrors[k].Referenced = false;
+                    }
+                }
+                process.Status = CommonModules.Status.IsPerformed;
+                process.UsedMemory = process.WSClockEntryMirrors.Count * os.PageSize;
+                process.AvailableMemory = process.UsedMemory;
+                try
+                {
+                    int nextPage;
+                    if (numberOfMisses < maxNumberOfMisses)
+                    {
+                        nextPage = random.Next(0, process.PageTable.Size);
+                    }
+                    else
+                    {
+                        bool isCorrect = false;
+                        do
+                        {
+                            nextPage = random.Next(0, process.PageTable.Size);
+                            for (int j = 0; j < process.WSClockEntryMirrors.Count; j++)
+                            {
+                                if (nextPage == process.WSClockEntryMirrors[j].PageTableEntryIndex)
+                                {
+                                    isCorrect = true;
+                                    break;
+                                }
+                            }
+                        } while (!isCorrect);
+                    }
+                    process.AccessPage(nextPage, Hardware);
+                }
+                catch(PageFault pageFault)
+                {
+                    numberOfMisses++;
+                    stopwatch.Start();
+                    os.PageFaultExeptionHandler(process, pageFault.PageFaultNumber);
+                    stopwatch.Stop();
+                    time += stopwatch.ElapsedMilliseconds;
+                }
+                //
+                // Поместить процесс в очередь
+                //
+                numberOfNewlySelectedPages = (process.AvailableMemory - StartAvailableMemory) / os.PageSize; // насколько увеличилось использование памяти, на столько же увеличилось число выделенных вновь страниц
+                numberOfReplacedPages = numberOfMisses - numberOfNewlySelectedPages; // число замещенных страниц равно разности между числом промахов и числом выделенных вновь станиц
+                process.UsedMemory = 0;
+                process.Status = CommonModules.Status.Queue;
+                //
+                // Отобразить статистику
+                //
+                textBoxListing.Text = "Число обращений к страницам = " + numberOfStarts + "\r\n" + 
+                    "Число ошибок отсутсвия страницы = " + numberOfMisses + "\r\n" + 
+                    "Биты обращения и изменения были сброшены " + numberOfBitChanges + " раз\r\n" +
+                    "Число вновь выделенных страниц = " + numberOfNewlySelectedPages + "\r\n" +
+                    "Число замещенных страниц = " + numberOfReplacedPages + "\r\n" +
+                    "Время, затраченное на обработку исключений = " + time + "мс" + "\r\n" +
+                    "Измененные данные процесса находятся тут: " + os.CurrentDirectoryName + "\\" + process.FileName;
+            }
         }
     }
 }
