@@ -326,6 +326,9 @@ namespace CommonModules
                     FreePages.RemoveAt(0);
                     process.WSClockEntryMirrors.Add(new WSClockEntryMirror(ref process.PageTable.PageTableEntries[pageNumber], process.CurrentVirtualTime, pageNumber));
                     memoryAllocated = true;
+                    StreamWriter writer = new StreamWriter(CurrentDirectoryName + "\\" + process.FileName, true);
+                    WritePageToDrive(writer, process.PageTable.PageTableEntries[pageNumber], pageNumber);
+                    writer.Close();
                 }
             }
 
@@ -388,7 +391,7 @@ namespace CommonModules
                     }
                     else  // иначе просто пишем в файл
                     {
-                        StreamWriter writer = new StreamWriter(CurrentDirectoryName + "\\" + process.FileName);
+                        StreamWriter writer = new StreamWriter(CurrentDirectoryName + "\\" + process.FileName, true);
                         WritePageToDrive(writer, process.WSClockEntryMirrors[removalPage].PageTableEntry, process.WSClockEntryMirrors[removalPage].PageTableEntryIndex);
                         process.WSClockEntryMirrors[removalPage].WrittenIntoFile = true;
                         writer.Close();

@@ -85,8 +85,6 @@ namespace SystemModel
             OSmode = !OSmode;
             if (OSmode)
             {
-
-                //timer.Stop();
                 buttonCreateNewProcess.Enabled = true;
                 buttonKillProcess.Enabled = true;
                 button1.Enabled = true;
@@ -95,12 +93,11 @@ namespace SystemModel
                 textBoxPIDkill.Enabled = true;              
 
                 groupBoxProcess.Enabled = false;
+                button1.Enabled = false;
+                textBox1.Clear();
             }
             else
             {
-
-                //timer.Start();
-
                 buttonCreateNewProcess.Enabled = false;
                 buttonKillProcess.Enabled = false;
                 button1.Enabled = false;
@@ -211,6 +208,7 @@ namespace SystemModel
             {
                 if (e.RowIndex < dataGridView2.Rows.Count)
                 {
+                    button1.Enabled = true;
                     textBox1.Text = dataGridView2.Rows[e.RowIndex].Cells[0].Value.ToString();
                     Process process = os.GetCheckedProcess(Convert.ToInt32(textBoxPID.Text));
                     textBoxPageTableEntry.Text = os.GetBitArrayStringFormat(process.PageTable.PageTableEntries[e.RowIndex].Entry);
@@ -379,25 +377,68 @@ namespace SystemModel
                     os.PageFaultExeptionHandler(process, pageFault.PageFaultNumber);
                     stopwatch.Stop();
                     time += stopwatch.ElapsedMilliseconds;
-                }
-                //
-                // Поместить процесс в очередь
-                //
-                numberOfNewlySelectedPages = (process.AvailableMemory - StartAvailableMemory) / os.PageSize; // насколько увеличилось использование памяти, на столько же увеличилось число выделенных вновь страниц
-                numberOfReplacedPages = numberOfMisses - numberOfNewlySelectedPages; // число замещенных страниц равно разности между числом промахов и числом выделенных вновь станиц
-                process.UsedMemory = 0;
-                process.Status = CommonModules.Status.Queue;
-                //
-                // Отобразить статистику
-                //
-                textBoxListing.Text = "Число обращений к страницам = " + numberOfStarts + "\r\n" + 
-                    "Число ошибок отсутсвия страницы = " + numberOfMisses + "\r\n" + 
-                    "Биты обращения и изменения были сброшены " + numberOfBitChanges + " раз\r\n" +
-                    "Число вновь выделенных страниц = " + numberOfNewlySelectedPages + "\r\n" +
-                    "Число замещенных страниц = " + numberOfReplacedPages + "\r\n" +
-                    "Время, затраченное на обработку исключений = " + time + "мс" + "\r\n" +
-                    "Измененные данные процесса находятся тут: " + os.CurrentDirectoryName + "\\" + process.FileName;
+                }   
             }
+            //
+            // Поместить процесс в очередь
+            //
+            numberOfNewlySelectedPages = (process.AvailableMemory - StartAvailableMemory) / os.PageSize; // насколько увеличилось использование памяти, на столько же увеличилось число выделенных вновь страниц
+            numberOfReplacedPages = numberOfMisses - numberOfNewlySelectedPages; // число замещенных страниц равно разности между числом промахов и числом выделенных вновь станиц
+            process.UsedMemory = 0;
+            process.Status = CommonModules.Status.Queue;
+            //
+            // Отобразить статистику
+            //
+            textBoxListing.Text = "Число обращений к страницам = " + numberOfStarts + "\r\n" +
+                "Число ошибок отсутсвия страницы = " + numberOfMisses + "\r\n" +
+                "Биты обращения и изменения были сброшены " + numberOfBitChanges + " раз\r\n" +
+                "Число вновь выделенных страниц = " + numberOfNewlySelectedPages + "\r\n" +
+                "Число замещенных страниц = " + numberOfReplacedPages + "\r\n" +
+                "Время, затраченное на обработку исключений = " + time + "мс" + "\r\n\r\n" +
+                "Измененные данные процесса находятся тут: " + os.CurrentDirectoryName + "\\" + process.FileName;
+
+            UpdateCurrentRowInDataGridView1(process.PID);
+        }
+        /// <summary>
+        /// Обновляет строку в таблице для указанного процесса
+        /// </summary>
+        /// <param name="processPID">PID процесса</param>
+        private void UpdateCurrentRowInDataGridView1(int processPID)
+        {
+            Process process = os.GetCheckedProcess(processPID);
+            int updatingRow = 0;
+            for (int i = 0; i < dataGridView1.Rows.Count; i++)
+            {
+                if ((int)dataGridView1.Rows[i].Cells[1].Value == processPID)
+                {
+                    updatingRow = i;
+                    break;
+                }
+            }
+            dataGridView1.Rows[updatingRow].Cells[2].Value = process.Status;
+            dataGridView1.Rows[updatingRow].Cells[3].Value = process.AvailableMemory;
+            dataGridView1.Rows[updatingRow].Cells[4].Value = process.UsedMemory;
+
+            uint adress = 0;
+            bool isCorrect;
+            for (int i = 0; i < Hardware.RAMs.Length; i++)
+            {
+                adress = process.PageTable.GetRealPhysicalAdress(ref Hardware.RAMs[i], out isCorrect);
+                if (isCorrect)
+                {
+                    break;
+                }
+            }
+            BitArray bitArray = new BitArray(new int[] { (int)adress });
+
+            string str = os.GetBitArrayStringFormat(bitArray);
+            string str1 = "";
+            for (int i = str.Length - 1; i >= 0; i--)
+            {
+                str1 += str[i];
+            }
+
+            dataGridView1.Rows[updatingRow].Cells[6].Value = str1 + "(" + adress.ToString() + ")";
         }
     }
 }

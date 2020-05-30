@@ -241,7 +241,8 @@
             // 
             // buttonStartProcess
             // 
-            this.buttonStartProcess.Enabled = false;
+            this.buttonStartProcess.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.buttonStartProcess.Location = new System.Drawing.Point(426, 183);
             this.buttonStartProcess.Name = "buttonStartProcess";
             this.buttonStartProcess.Size = new System.Drawing.Size(178, 32);
@@ -286,6 +287,8 @@
             // 
             // button2
             // 
+            this.button2.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.button2.Location = new System.Drawing.Point(391, 32);
             this.button2.Name = "button2";
             this.button2.Size = new System.Drawing.Size(213, 30);
