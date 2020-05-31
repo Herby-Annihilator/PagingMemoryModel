@@ -45,11 +45,7 @@
             this.buttonStartProcess = new System.Windows.Forms.Button();
             this.labelListing = new System.Windows.Forms.Label();
             this.textBoxListing = new System.Windows.Forms.TextBox();
-            this.buttonStep = new System.Windows.Forms.Button();
             this.button2 = new System.Windows.Forms.Button();
-            this.statusStrip1 = new System.Windows.Forms.StatusStrip();
-            this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
-            this.toolStripStatusLabelCurrentAction = new System.Windows.Forms.ToolStripStatusLabel();
             this.labelPIDkill = new System.Windows.Forms.Label();
             this.textBoxPIDkill = new System.Windows.Forms.TextBox();
             this.buttonKillProcess = new System.Windows.Forms.Button();
@@ -58,6 +54,9 @@
             this.tableLayoutPanel3 = new System.Windows.Forms.TableLayoutPanel();
             this.dataGridView2 = new System.Windows.Forms.DataGridView();
             this.panel1 = new System.Windows.Forms.Panel();
+            this.buttonThrowOffPresentBit = new System.Windows.Forms.Button();
+            this.label3 = new System.Windows.Forms.Label();
+            this.textBoxNumberInPageTable = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
             this.textBoxPageTableEntry = new System.Windows.Forms.TextBox();
             this.labelTableAdress = new System.Windows.Forms.Label();
@@ -70,14 +69,13 @@
             this.Present = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.ReadWrite = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.UserSupervisor = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.textBoxNumberInPageTable = new System.Windows.Forms.TextBox();
-            this.label3 = new System.Windows.Forms.Label();
-            this.buttonThrowOffPresentBit = new System.Windows.Forms.Button();
+            this.buttonThrowOffAccesedBit = new System.Windows.Forms.Button();
+            this.textBoxPageStatus = new System.Windows.Forms.TextBox();
+            this.label4 = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             this.tableLayoutPanel1.SuspendLayout();
             this.tableLayoutPanel2.SuspendLayout();
             this.groupBoxOS.SuspendLayout();
-            this.statusStrip1.SuspendLayout();
             this.groupBoxProcess.SuspendLayout();
             this.tableLayoutPanel3.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView2)).BeginInit();
@@ -206,14 +204,14 @@
             // 
             // groupBoxOS
             // 
+            this.groupBoxOS.Controls.Add(this.label4);
+            this.groupBoxOS.Controls.Add(this.textBoxPageStatus);
             this.groupBoxOS.Controls.Add(this.label2);
             this.groupBoxOS.Controls.Add(this.textBoxPIDtoStart);
             this.groupBoxOS.Controls.Add(this.buttonStartProcess);
             this.groupBoxOS.Controls.Add(this.labelListing);
             this.groupBoxOS.Controls.Add(this.textBoxListing);
-            this.groupBoxOS.Controls.Add(this.buttonStep);
             this.groupBoxOS.Controls.Add(this.button2);
-            this.groupBoxOS.Controls.Add(this.statusStrip1);
             this.groupBoxOS.Controls.Add(this.labelPIDkill);
             this.groupBoxOS.Controls.Add(this.textBoxPIDkill);
             this.groupBoxOS.Controls.Add(this.buttonKillProcess);
@@ -275,18 +273,8 @@
             this.textBoxListing.Multiline = true;
             this.textBoxListing.Name = "textBoxListing";
             this.textBoxListing.ReadOnly = true;
-            this.textBoxListing.Size = new System.Drawing.Size(597, 189);
+            this.textBoxListing.Size = new System.Drawing.Size(597, 109);
             this.textBoxListing.TabIndex = 11;
-            // 
-            // buttonStep
-            // 
-            this.buttonStep.Location = new System.Drawing.Point(6, 142);
-            this.buttonStep.Name = "buttonStep";
-            this.buttonStep.Size = new System.Drawing.Size(122, 35);
-            this.buttonStep.TabIndex = 10;
-            this.buttonStep.Text = "Step";
-            this.buttonStep.UseVisualStyleBackColor = true;
-            this.buttonStep.Click += new System.EventHandler(this.buttonStep_Click);
             // 
             // button2
             // 
@@ -299,29 +287,6 @@
             this.button2.Text = "Взаимодействие с ОС/Процессом";
             this.button2.UseVisualStyleBackColor = true;
             this.button2.Click += new System.EventHandler(this.button2_Click);
-            // 
-            // statusStrip1
-            // 
-            this.statusStrip1.ImageScalingSize = new System.Drawing.Size(20, 20);
-            this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.toolStripStatusLabel1,
-            this.toolStripStatusLabelCurrentAction});
-            this.statusStrip1.Location = new System.Drawing.Point(3, 413);
-            this.statusStrip1.Name = "statusStrip1";
-            this.statusStrip1.Size = new System.Drawing.Size(604, 22);
-            this.statusStrip1.TabIndex = 7;
-            this.statusStrip1.Text = "statusStrip1";
-            // 
-            // toolStripStatusLabel1
-            // 
-            this.toolStripStatusLabel1.Name = "toolStripStatusLabel1";
-            this.toolStripStatusLabel1.Size = new System.Drawing.Size(173, 17);
-            this.toolStripStatusLabel1.Text = "Выполняю в данный момент: ";
-            // 
-            // toolStripStatusLabelCurrentAction
-            // 
-            this.toolStripStatusLabelCurrentAction.Name = "toolStripStatusLabelCurrentAction";
-            this.toolStripStatusLabelCurrentAction.Size = new System.Drawing.Size(0, 17);
             // 
             // labelPIDkill
             // 
@@ -408,6 +373,7 @@
             // 
             // panel1
             // 
+            this.panel1.Controls.Add(this.buttonThrowOffAccesedBit);
             this.panel1.Controls.Add(this.buttonThrowOffPresentBit);
             this.panel1.Controls.Add(this.label3);
             this.panel1.Controls.Add(this.textBoxNumberInPageTable);
@@ -424,6 +390,37 @@
             this.panel1.Name = "panel1";
             this.panel1.Size = new System.Drawing.Size(598, 245);
             this.panel1.TabIndex = 1;
+            // 
+            // buttonThrowOffPresentBit
+            // 
+            this.buttonThrowOffPresentBit.Enabled = false;
+            this.buttonThrowOffPresentBit.Location = new System.Drawing.Point(16, 115);
+            this.buttonThrowOffPresentBit.Name = "buttonThrowOffPresentBit";
+            this.buttonThrowOffPresentBit.Size = new System.Drawing.Size(86, 43);
+            this.buttonThrowOffPresentBit.TabIndex = 13;
+            this.buttonThrowOffPresentBit.Text = "Сбросить бит отображения";
+            this.buttonThrowOffPresentBit.UseVisualStyleBackColor = true;
+            this.buttonThrowOffPresentBit.Click += new System.EventHandler(this.buttonThrowOffPresentBit_Click);
+            // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(327, 81);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(94, 13);
+            this.label3.TabIndex = 12;
+            this.label3.Text = "Номер в таблице";
+            // 
+            // textBoxNumberInPageTable
+            // 
+            this.textBoxNumberInPageTable.BackColor = System.Drawing.SystemColors.ButtonHighlight;
+            this.textBoxNumberInPageTable.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.textBoxNumberInPageTable.Enabled = false;
+            this.textBoxNumberInPageTable.Location = new System.Drawing.Point(272, 78);
+            this.textBoxNumberInPageTable.Name = "textBoxNumberInPageTable";
+            this.textBoxNumberInPageTable.ReadOnly = true;
+            this.textBoxNumberInPageTable.Size = new System.Drawing.Size(49, 20);
+            this.textBoxNumberInPageTable.TabIndex = 11;
             // 
             // label1
             // 
@@ -505,6 +502,7 @@
             this.PagePhisicalAdress.MinimumWidth = 6;
             this.PagePhisicalAdress.Name = "PagePhisicalAdress";
             this.PagePhisicalAdress.ReadOnly = true;
+            this.PagePhisicalAdress.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
             // 
             // Present
             // 
@@ -512,6 +510,7 @@
             this.Present.MinimumWidth = 6;
             this.Present.Name = "Present";
             this.Present.ReadOnly = true;
+            this.Present.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
             // 
             // ReadWrite
             // 
@@ -519,6 +518,7 @@
             this.ReadWrite.MinimumWidth = 6;
             this.ReadWrite.Name = "ReadWrite";
             this.ReadWrite.ReadOnly = true;
+            this.ReadWrite.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
             // 
             // UserSupervisor
             // 
@@ -526,36 +526,42 @@
             this.UserSupervisor.MinimumWidth = 6;
             this.UserSupervisor.Name = "UserSupervisor";
             this.UserSupervisor.ReadOnly = true;
+            this.UserSupervisor.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
             // 
-            // textBoxNumberInPageTable
+            // buttonThrowOffAccesedBit
             // 
-            this.textBoxNumberInPageTable.BackColor = System.Drawing.SystemColors.ButtonHighlight;
-            this.textBoxNumberInPageTable.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.textBoxNumberInPageTable.Enabled = false;
-            this.textBoxNumberInPageTable.Location = new System.Drawing.Point(272, 78);
-            this.textBoxNumberInPageTable.Name = "textBoxNumberInPageTable";
-            this.textBoxNumberInPageTable.ReadOnly = true;
-            this.textBoxNumberInPageTable.Size = new System.Drawing.Size(49, 20);
-            this.textBoxNumberInPageTable.TabIndex = 11;
+            this.buttonThrowOffAccesedBit.Enabled = false;
+            this.buttonThrowOffAccesedBit.Location = new System.Drawing.Point(118, 115);
+            this.buttonThrowOffAccesedBit.Name = "buttonThrowOffAccesedBit";
+            this.buttonThrowOffAccesedBit.Size = new System.Drawing.Size(148, 43);
+            this.buttonThrowOffAccesedBit.TabIndex = 14;
+            this.buttonThrowOffAccesedBit.Text = "Сбросить/Восстановить бит обращения";
+            this.buttonThrowOffAccesedBit.UseVisualStyleBackColor = true;
+            this.buttonThrowOffAccesedBit.Click += new System.EventHandler(this.buttonThrowOffAccesedBit_Click);
             // 
-            // label3
+            // textBoxPageStatus
             // 
-            this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(327, 81);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(94, 13);
-            this.label3.TabIndex = 12;
-            this.label3.Text = "Номер в таблице";
+            this.textBoxPageStatus.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.textBoxPageStatus.BackColor = System.Drawing.SystemColors.ButtonHighlight;
+            this.textBoxPageStatus.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.textBoxPageStatus.Enabled = false;
+            this.textBoxPageStatus.Location = new System.Drawing.Point(6, 347);
+            this.textBoxPageStatus.Multiline = true;
+            this.textBoxPageStatus.Name = "textBoxPageStatus";
+            this.textBoxPageStatus.ReadOnly = true;
+            this.textBoxPageStatus.Size = new System.Drawing.Size(597, 85);
+            this.textBoxPageStatus.TabIndex = 16;
             // 
-            // buttonThrowOffPresentBit
+            // label4
             // 
-            this.buttonThrowOffPresentBit.Location = new System.Drawing.Point(16, 115);
-            this.buttonThrowOffPresentBit.Name = "buttonThrowOffPresentBit";
-            this.buttonThrowOffPresentBit.Size = new System.Drawing.Size(86, 43);
-            this.buttonThrowOffPresentBit.TabIndex = 13;
-            this.buttonThrowOffPresentBit.Text = "Сбросить бит отображения";
-            this.buttonThrowOffPresentBit.UseVisualStyleBackColor = true;
-            this.buttonThrowOffPresentBit.Click += new System.EventHandler(this.buttonThrowOffPresentBit_Click);
+            this.label4.AutoSize = true;
+            this.label4.Location = new System.Drawing.Point(7, 333);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(172, 13);
+            this.label4.TabIndex = 17;
+            this.label4.Text = "Состояние выбранной страницы";
             // 
             // MainForm
             // 
@@ -563,6 +569,8 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1238, 643);
             this.Controls.Add(this.tableLayoutPanel1);
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
+            this.MaximizeBox = false;
             this.Name = "MainForm";
             this.Text = "MainForm";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainForm_FormClosing);
@@ -571,8 +579,6 @@
             this.tableLayoutPanel2.ResumeLayout(false);
             this.groupBoxOS.ResumeLayout(false);
             this.groupBoxOS.PerformLayout();
-            this.statusStrip1.ResumeLayout(false);
-            this.statusStrip1.PerformLayout();
             this.groupBoxProcess.ResumeLayout(false);
             this.tableLayoutPanel3.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView2)).EndInit();
@@ -609,11 +615,7 @@
         private System.Windows.Forms.TextBox textBoxPIDkill;
         private System.Windows.Forms.Button buttonKillProcess;
         private System.Windows.Forms.Button buttonCreateNewProcess;
-        private System.Windows.Forms.StatusStrip statusStrip1;
-        private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel1;
         private System.Windows.Forms.Button button2;
-        private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabelCurrentAction;
-        private System.Windows.Forms.Button buttonStep;
         private System.Windows.Forms.TextBox textBoxPageTableEntry;
         private System.Windows.Forms.Label labelListing;
         private System.Windows.Forms.TextBox textBoxListing;
@@ -621,12 +623,15 @@
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.TextBox textBoxPIDtoStart;
         private System.Windows.Forms.Button buttonStartProcess;
+        private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.TextBox textBoxNumberInPageTable;
+        private System.Windows.Forms.Button buttonThrowOffPresentBit;
         private System.Windows.Forms.DataGridViewTextBoxColumn PagePhisicalAdress;
         private System.Windows.Forms.DataGridViewTextBoxColumn Present;
         private System.Windows.Forms.DataGridViewTextBoxColumn ReadWrite;
         private System.Windows.Forms.DataGridViewTextBoxColumn UserSupervisor;
-        private System.Windows.Forms.Label label3;
-        private System.Windows.Forms.TextBox textBoxNumberInPageTable;
-        private System.Windows.Forms.Button buttonThrowOffPresentBit;
+        private System.Windows.Forms.Button buttonThrowOffAccesedBit;
+        private System.Windows.Forms.Label label4;
+        private System.Windows.Forms.TextBox textBoxPageStatus;
     }
 }

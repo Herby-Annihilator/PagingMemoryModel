@@ -16,10 +16,6 @@ namespace SystemModel
 {
     public partial class MainForm : Form
     {
-        /// <summary>
-        /// Таймер, по каждому прерыванию запускает старт следующего в списке процесса.
-        /// </summary>
-        System.Timers.Timer timer;
         private OS os;
         /// <summary>
         /// OS
@@ -48,12 +44,7 @@ namespace SystemModel
             OS.CreateNewProcess("systemDaemonA", 4096, 1);
             OS.CreateNewProcess("systemDaemonB", 4096, 1);
             OS.CreateNewProcess("systemDaemonC", 4096, 1);
-
-            //timer = new System.Timers.Timer(5000);
-            //timer.Elapsed += os.StartNextProcess;
-            //timer.Elapsed += DataGridVeiwUpdate;
-            //timer.AutoReset = true;
-            //timer.Enabled = true;          
+            DataGridVeiwUpdate();        
         }
 
         private void labelTableAdress_Click(object sender, EventArgs e)
@@ -69,7 +60,7 @@ namespace SystemModel
         {
             createNewProcessForm = new CreateNewProcess(ref os);
             createNewProcessForm.ShowDialog();
-            //createNewProcessForm.Show();
+            DataGridVeiwUpdate();
         }
         /// <summary>
         /// Показывает, приостановлена или нет симуляция.
@@ -94,6 +85,9 @@ namespace SystemModel
 
                 groupBoxProcess.Enabled = false;
                 button1.Enabled = false;
+                buttonThrowOffPresentBit.Enabled = false;
+                buttonThrowOffAccesedBit.Enabled = false;
+
                 textBox1.Clear();
             }
             else
@@ -110,44 +104,49 @@ namespace SystemModel
         }
 
         /// <summary>
-        /// Обновляет данные таблицы (главной внизу) в соответсвии с тем, какой процесс работает
+        /// Обновляет данные таблицы (главной внизу)
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void DataGridVeiwUpdate(/*object sender, EventArgs e*/)
+        private void DataGridVeiwUpdate()
         {
-            int index = os.currentProcessNumber;
-            if (index >= dataGridView1.Rows.Count)
+            dataGridView1.Rows.Clear();
+            for (int i = 0; i < os.Processes.Count; i++)
             {
-                dataGridView1.Invoke((MethodInvoker)delegate { dataGridView1.Rows.Add(); }); ;
-            }
-            dataGridView1.Rows[index].Cells[0].Value = os.CurrentProcess.Name;
-            dataGridView1.Rows[index].Cells[1].Value = os.CurrentProcess.PID;
-            dataGridView1.Rows[index].Cells[2].Value = os.CurrentProcess.Status;
-            dataGridView1.Rows[index].Cells[3].Value = os.CurrentProcess.AvailableMemory;
-            dataGridView1.Rows[index].Cells[4].Value = os.CurrentProcess.UsedMemory;
-            dataGridView1.Rows[index].Cells[5].Value = 2147483648;   // 2^32 / 2
+                dataGridView1.Rows.Add();
+                dataGridView1.Rows[i].Cells[0].Value = os.Processes[i].Name;
+                dataGridView1.Rows[i].Cells[1].Value = os.Processes[i].PID;
+                dataGridView1.Rows[i].Cells[2].Value = os.Processes[i].Status;
+                dataGridView1.Rows[i].Cells[3].Value = os.Processes[i].AvailableMemory;
+                dataGridView1.Rows[i].Cells[4].Value = os.Processes[i].UsedMemory;
+                dataGridView1.Rows[i].Cells[5].Value = 2147483648;   // 2^32 / 2
 
-            uint adress = 0;
-            bool isCorrect;
-            for (int i = 0; i < Hardware.RAMs.Length; i++)
-            {
-                adress = os.CurrentProcess.PageTable.GetRealPhysicalAdress(ref Hardware.RAMs[i], out isCorrect);
-                if (isCorrect)
+                uint adress = 0;
+                bool isCorrect;
+                for (int j = 0; j < Hardware.RAMs.Length; j++)
                 {
-                    break;
+                    adress = os.Processes[i].PageTable.GetRealPhysicalAdress(ref Hardware.RAMs[j], out isCorrect);
+                    if (isCorrect)
+                    {
+                        break;
+                    }
                 }
-            }
-            BitArray bitArray = new BitArray(new int[] { (int)adress });
+                BitArray bitArray = new BitArray(new int[] { (int)adress });
 
-            string str = os.GetBitArrayStringFormat(bitArray);
-            string str1 = "";
-            for (int i = str.Length - 1; i >= 0; i--)
-            {
-                str1 += str[i];
+                string str = os.GetBitArrayStringFormat(bitArray);
+                string str1 = "";
+                for (int j = str.Length - 1; j >= 0; j--)
+                {
+                    str1 += str[j];
+                }
+
+                dataGridView1.Rows[i].Cells[6].Value = str1 + " (" + adress.ToString() + ")";
             }
 
-            dataGridView1.Rows[index].Cells[6].Value = str1 + "(" + adress.ToString() + ")";
+            //if (index >= dataGridView1.Rows.Count)
+            //{
+            //    dataGridView1.Invoke((MethodInvoker)delegate { dataGridView1.Rows.Add(); }); ;
+            //}
         }
         /// <summary>
         /// Тыкаем на любую ячейку на главной таблице
@@ -209,10 +208,37 @@ namespace SystemModel
                 if (e.RowIndex < dataGridView2.Rows.Count)
                 {
                     button1.Enabled = true;
+                    buttonThrowOffPresentBit.Enabled = true;
+                    buttonThrowOffAccesedBit.Enabled = true;
                     textBox1.Text = dataGridView2.Rows[e.RowIndex].Cells[0].Value.ToString();
                     Process process = os.GetCheckedProcess(Convert.ToInt32(textBoxPID.Text));
                     textBoxPageTableEntry.Text = os.GetBitArrayStringFormat(process.PageTable.PageTableEntries[e.RowIndex].Entry);
                     textBoxNumberInPageTable.Text = e.RowIndex.ToString();
+
+                    TextBoxPageStatusUpdate(process, e.RowIndex);
+                }
+            }
+        }
+        /// <summary>
+        /// Обновляет данные состояния выбранной в datagridview2 страницы
+        /// </summary>
+        /// <param name="process">действующий процесс</param>
+        /// <param name="rowIndex">индекс строки в datagridview2</param>
+        private void TextBoxPageStatusUpdate(Process process, int rowIndex)
+        {
+            textBoxPageStatus.Clear();
+            uint realAdress = (uint)process.PageTable.PageTableEntries[rowIndex].Adress * (uint)os.PageSize;
+            for (int i = 0; i < Hardware.RAMs.Length; i++)
+            {
+                uint endRAMAdress = Hardware.RAMs[i].PhysicalAdress + (uint)(Hardware.RAMs[i].ByteCells.Length * (os.BitDepth / 8));
+                if (realAdress >= Hardware.RAMs[i].PhysicalAdress && realAdress < endRAMAdress)
+                {
+                    uint pageStartIndex = (realAdress - Hardware.RAMs[i].PhysicalAdress) / (uint)(os.BitDepth / 8);  // стартовый индекс BitArray, с которого начинается страница
+                                                                                                                     //uint pageEndIndex = pageStartIndex + (uint)os.PageSize / 4;   // блоки по 32 бита
+                    for (uint j = pageStartIndex; j < pageStartIndex + 15; j++)
+                    {
+                        textBoxPageStatus.Text += os.GetBitArrayStringFormat(Hardware.RAMs[i].ByteCells[j]) + " ";
+                    }
                 }
             }
         }
@@ -257,6 +283,7 @@ namespace SystemModel
                     if (isCorret)
                     {
                         os.KillProcess(process.PID);
+                        DataGridVeiwUpdate();
                     }
                     else
                     {
@@ -301,7 +328,6 @@ namespace SystemModel
             {
                 isPageFault = true;
                 os.PageFaultExeptionHandler(os.GetCheckedProcess(Convert.ToInt32(textBoxPID.Text)), pageFault.PageFaultNumber);
-                UpdateDataGridView2();
             }
             catch(Exception e1)
             {
@@ -345,6 +371,7 @@ namespace SystemModel
                 }
 
                 UpdateDataGridView2();
+                TextBoxPageStatusUpdate(process, Convert.ToInt32(textBoxNumberInPageTable.Text));
 
                 textBoxListing.Text = "Обработка ошибки отсутствия страницы " + isPageFault.ToString() + "\r\n";
                 if (isPageFault)
@@ -354,9 +381,7 @@ namespace SystemModel
                 }
 
                 textBoxListing.Text += "\r\nИзмененные данные процесса находятся тут: " + os.CurrentDirectoryName + "\\" + process.FileName;
-            }
-
-            
+            }           
         }
         /// <summary>
         /// Обновляет данные таблицы dataGridView2
@@ -548,7 +573,20 @@ namespace SystemModel
         private void buttonThrowOffPresentBit_Click(object sender, EventArgs e)
         {
             Process process = os.GetCheckedProcess(Convert.ToInt32(textBoxPID.Text));
-            process.PageTable.PageTableEntries[Convert.ToInt32(textBoxNumberInPageTable)].Present = false;
+            process.PageTable.PageTableEntries[Convert.ToInt32(textBoxNumberInPageTable.Text)].Present = false;
+            dataGridView2.Rows[Convert.ToInt32(textBoxNumberInPageTable.Text)].Cells[1].Value = process.PageTable.PageTableEntries[Convert.ToInt32(textBoxNumberInPageTable.Text)].Present;
+            textBoxPageTableEntry.Text = os.GetBitArrayStringFormat(process.PageTable.PageTableEntries[Convert.ToInt32(textBoxNumberInPageTable.Text)].Entry);
+        }
+        /// <summary>
+        /// Сбросить или восстановить бит обращения
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void buttonThrowOffAccesedBit_Click(object sender, EventArgs e)
+        {
+            Process process = os.GetCheckedProcess(Convert.ToInt32(textBoxPID.Text));
+            process.PageTable.PageTableEntries[Convert.ToInt32(textBoxNumberInPageTable.Text)].Accessed = !process.PageTable.PageTableEntries[Convert.ToInt32(textBoxNumberInPageTable.Text)].Accessed;
+            textBoxPageTableEntry.Text = os.GetBitArrayStringFormat(process.PageTable.PageTableEntries[Convert.ToInt32(textBoxNumberInPageTable.Text)].Entry);
         }
     }
 }

@@ -11,7 +11,11 @@ using CommonModules.PagingModel;
 namespace CommonModules
 {
     public class OS
-    {       
+    {    
+        /// <summary>
+        /// Получает ссылку на список процессов
+        /// </summary>
+        public List<Process> Processes { get { return processes; } }
         private int PageMaxAge { get; set; } = 10;
         /// <summary>
         /// Список свободных страниц. Элемент содержит номер свободной страницы и он не обязательно равен индексу
@@ -342,7 +346,13 @@ namespace CommonModules
                 {
                     if (!ableToRemove)
                     {
-                        if (process.WSClockEntryMirrors[i].Referenced == true)
+                        if (i == pageNumber)
+                        { 
+                            process.WSClockEntryMirrors[i].Referenced = false;
+                            process.WSClockEntryMirrors[i].LastUseTime = process.CurrentVirtualTime;
+                            //continue;
+                        }
+                        else if (process.WSClockEntryMirrors[i].Referenced == true)
                         {
                             process.WSClockEntryMirrors[i].Referenced = false;
                             process.WSClockEntryMirrors[i].LastUseTime = process.CurrentVirtualTime;
@@ -370,6 +380,7 @@ namespace CommonModules
                         if (!process.WSClockEntryMirrors[removalCandidates[i]].Modified)
                         {
                             ableToRemove = true;
+                            removalPage = removalCandidates[i];
                             break;
                         }
                     }
@@ -550,7 +561,7 @@ namespace CommonModules
         {
             if (rewrite)
             {
-                StreamWriter writer = new StreamWriter(CurrentDirectoryName + "\\" + "tmp.prc");
+                StreamWriter writer = new StreamWriter(CurrentDirectoryName + "\\" + "tmp.prc", true);
                 StreamReader reader = new StreamReader(CurrentDirectoryName + "\\" + processFileName);
 
                 string pageIndexInPageTable;
@@ -586,6 +597,7 @@ namespace CommonModules
                         }
                         else
                         {
+                            writer.WriteLine("[ " + number + " ]");
                             writer.Write(reader.ReadLine());
                         }
                     }
@@ -709,6 +721,10 @@ namespace CommonModules
                     process.WSClockEntryMirrors.Add(new WSClockEntryMirror(ref process.PageTable.PageTableEntries[pageIndexInPageTable], process.CurrentVirtualTime, pageIndexInPageTable));
                     process.WSClockEntryMirrors[process.WSClockEntryMirrors.Count - 1].WrittenIntoFile = true;
                     isRead = true;
+                }
+                else
+                {
+                    reader.ReadLine();  // чтобы скипнуть ненужную строку
                 }
             }
             reader.Close();

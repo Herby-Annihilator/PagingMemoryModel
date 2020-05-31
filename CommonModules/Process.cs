@@ -106,6 +106,7 @@ namespace CommonModules
                     }
                 }
                 PageTable.PageTableEntries[pageNumberInTable].Dirty = true;
+                PageTable.PageTableEntries[pageNumberInTable].Accessed = true;
             }
         }
 
