@@ -212,6 +212,7 @@ namespace SystemModel
                     textBox1.Text = dataGridView2.Rows[e.RowIndex].Cells[0].Value.ToString();
                     Process process = os.GetCheckedProcess(Convert.ToInt32(textBoxPID.Text));
                     textBoxPageTableEntry.Text = os.GetBitArrayStringFormat(process.PageTable.PageTableEntries[e.RowIndex].Entry);
+                    textBoxNumberInPageTable.Text = e.RowIndex.ToString();
                 }
             }
         }
@@ -287,27 +288,93 @@ namespace SystemModel
         /// <param name="e"></param>
         private void button1_Click(object sender, EventArgs e)
         {
+            bool isPageFault = false;
+            int pageNumberInPageTable = Convert.ToInt32(textBoxNumberInPageTable.Text);
+
+            Process process = os.GetCheckedProcess(Convert.ToInt32(textBoxPID.Text));
+            int startAvailableMemory = process.AvailableMemory;
             try
             {
-                this.toolStripStatusLabelCurrentAction.Text = "Обращение к странице";
-                int pageNumber = Convert.ToInt32(textBox1.Text) / os.PageSize;
-                Process process = os.GetCheckedProcess(Convert.ToInt32(textBoxPID.Text));
-                process.AccessPage(pageNumber, Hardware);
-                this.toolStripStatusLabelCurrentAction.Text = "";
+                process.AccessPage(pageNumberInPageTable, Hardware);
             }
             catch(PageFault pageFault)
             {
-                this.toolStripStatusLabelCurrentAction.Text = "Обрабатываю исключение PageFault";
+                isPageFault = true;
                 os.PageFaultExeptionHandler(os.GetCheckedProcess(Convert.ToInt32(textBoxPID.Text)), pageFault.PageFaultNumber);
-                this.toolStripStatusLabelCurrentAction.Text = "";
+                UpdateDataGridView2();
             }
             catch(Exception e1)
             {
                 MessageBox.Show(e1.Message, "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                this.toolStripStatusLabelCurrentAction.Text = "";
             }
+
+
+            textBoxListing.Clear();
+
+            if (os.IsProcessKilled(Convert.ToInt32(textBoxPID.Text)))
+            {
+                textBoxListing.Text = "Процесс был убит";
+                dataGridView2.Rows.Clear();
+                int pid = Convert.ToInt32(textBoxPID.Text);
+                for (int i = 0; i < dataGridView1.Rows.Count; i++)
+                {
+                    if ((int)dataGridView1.Rows[i].Cells[1].Value == pid)
+                    {
+                        dataGridView1.Rows.RemoveAt(i);
+                        dataGridView1.Update();
+                        break;
+                    }
+                }
+                textBoxPID.Clear();
+                textBoxTableAdress.Clear();
+                textBoxPageTableEntry.Clear();
+                textBoxNumberInPageTable.Clear();
+                textBoxPIDtoStart.Clear();
+            }
+            else
+            {
+                int numberOfNewlySelectedPages = (process.AvailableMemory - startAvailableMemory) / os.PageSize;
+                int numberOfReplacedPages;
+                if (numberOfNewlySelectedPages == 0)
+                {
+                    numberOfReplacedPages = 1;
+                }
+                else
+                {
+                    numberOfReplacedPages = 0;
+                }
+
+                UpdateDataGridView2();
+
+                textBoxListing.Text = "Обработка ошибки отсутствия страницы " + isPageFault.ToString() + "\r\n";
+                if (isPageFault)
+                {
+                    textBoxListing.Text += "Выделено новых страниц " + numberOfNewlySelectedPages + "\r\n" +
+                        "Замещено страниц " + numberOfReplacedPages + "\r\n";
+                }
+
+                textBoxListing.Text += "\r\nИзмененные данные процесса находятся тут: " + os.CurrentDirectoryName + "\\" + process.FileName;
+            }
+
             
         }
+        /// <summary>
+        /// Обновляет данные таблицы dataGridView2
+        /// </summary>
+        public void UpdateDataGridView2()
+        {
+            dataGridView2.Rows.Clear();
+            Process process = os.GetCheckedProcess(Convert.ToInt32(textBoxPID.Text));
+            for (int i = 0; i < process.PageTable.Size; i++)
+            {
+                dataGridView2.Rows.Add();
+                dataGridView2.Rows[i].Cells[0].Value = process.PageTable.PageTableEntries[i].Adress * os.PageSize;
+                dataGridView2.Rows[i].Cells[1].Value = process.PageTable.PageTableEntries[i].Present;
+                dataGridView2.Rows[i].Cells[2].Value = process.PageTable.PageTableEntries[i].RW;
+                dataGridView2.Rows[i].Cells[3].Value = process.PageTable.PageTableEntries[i].UserSupervisor;
+            }
+        }
+
         /// <summary>
         /// Запускаем процесс
         /// </summary>
@@ -315,7 +382,16 @@ namespace SystemModel
         /// <param name="e"></param>
         private void buttonStartProcess_Click(object sender, EventArgs e)
         {
-            Process process = os.GetCheckedProcess(Convert.ToInt32(textBoxPIDtoStart.Text));
+            Process process;
+            try
+            {
+                process = os.GetCheckedProcess(Convert.ToInt32(textBoxPIDtoStart.Text));
+            }
+            catch (Exception ee)
+            {
+                MessageBox.Show(ee.Message, "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
             Random random = new Random();
             int numberOfStarts = random.Next(100, 500);
             int numberOfMisses = 0;
@@ -377,6 +453,30 @@ namespace SystemModel
                     os.PageFaultExeptionHandler(process, pageFault.PageFaultNumber);
                     stopwatch.Stop();
                     time += stopwatch.ElapsedMilliseconds;
+                    stopwatch.Reset();
+
+                    if (os.IsProcessKilled(Convert.ToInt32(textBoxPIDtoStart.Text)))
+                    {
+                        textBoxListing.Text = "Процесс был убит";
+                        dataGridView2.Rows.Clear();
+                        int pid = Convert.ToInt32(textBoxPID.Text);
+                        for (int j = 0; j < dataGridView1.Rows.Count; j++)
+                        {
+                            if ((int)dataGridView1.Rows[j].Cells[1].Value == pid)
+                            {
+                                dataGridView1.Rows.RemoveAt(j);
+                                dataGridView1.Update();
+                                break;
+                            }
+                        }
+                        textBoxPID.Clear();
+                        textBoxTableAdress.Clear();
+                        textBoxPageTableEntry.Clear();
+                        textBoxNumberInPageTable.Clear();
+                        textBoxPIDtoStart.Clear();
+
+                        return;
+                    }
                 }   
             }
             //
@@ -439,6 +539,16 @@ namespace SystemModel
             }
 
             dataGridView1.Rows[updatingRow].Cells[6].Value = str1 + "(" + adress.ToString() + ")";
+        }
+        /// <summary>
+        /// Сбросить бит отображения
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void buttonThrowOffPresentBit_Click(object sender, EventArgs e)
+        {
+            Process process = os.GetCheckedProcess(Convert.ToInt32(textBoxPID.Text));
+            process.PageTable.PageTableEntries[Convert.ToInt32(textBoxNumberInPageTable)].Present = false;
         }
     }
 }

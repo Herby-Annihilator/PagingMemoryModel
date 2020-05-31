@@ -84,8 +84,8 @@ namespace CommonModules
         /// Метод обращается к памяти. Делает отрицание начала страницы (отрицает первые 32 бита в странице).
         /// Выкидывает исключение PageFault, если страница в памяти не найдена.
         /// </summary>
-        /// <param name="pageNumberInTable"></param>
-        /// <param name="hardware"></param>
+        /// <param name="pageNumberInTable">номер страницы в таблице страниц (конкретное значение записи PageTableEntry)</param>
+        /// <param name="hardware">железо</param>
         public void AccessPage(int pageNumberInTable, Hardware hardware)
         {
             if (PageTable.PageTableEntries[pageNumberInTable].Present == false)

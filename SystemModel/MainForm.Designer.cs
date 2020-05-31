@@ -57,10 +57,6 @@
             this.groupBoxProcess = new System.Windows.Forms.GroupBox();
             this.tableLayoutPanel3 = new System.Windows.Forms.TableLayoutPanel();
             this.dataGridView2 = new System.Windows.Forms.DataGridView();
-            this.PagePhisicalAdress = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.Present = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.ReadWrite = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.UserSupervisor = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.panel1 = new System.Windows.Forms.Panel();
             this.label1 = new System.Windows.Forms.Label();
             this.textBoxPageTableEntry = new System.Windows.Forms.TextBox();
@@ -70,6 +66,13 @@
             this.button1 = new System.Windows.Forms.Button();
             this.labelPID = new System.Windows.Forms.Label();
             this.textBoxPID = new System.Windows.Forms.TextBox();
+            this.PagePhisicalAdress = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.Present = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.ReadWrite = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.UserSupervisor = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.textBoxNumberInPageTable = new System.Windows.Forms.TextBox();
+            this.label3 = new System.Windows.Forms.Label();
+            this.buttonThrowOffPresentBit = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             this.tableLayoutPanel1.SuspendLayout();
             this.tableLayoutPanel2.SuspendLayout();
@@ -403,36 +406,11 @@
             this.dataGridView2.TabIndex = 0;
             this.dataGridView2.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridView2_CellClick);
             // 
-            // PagePhisicalAdress
-            // 
-            this.PagePhisicalAdress.HeaderText = "Физический адрес страницы (20 бит)";
-            this.PagePhisicalAdress.MinimumWidth = 6;
-            this.PagePhisicalAdress.Name = "PagePhisicalAdress";
-            this.PagePhisicalAdress.ReadOnly = true;
-            // 
-            // Present
-            // 
-            this.Present.HeaderText = "Отображение в память";
-            this.Present.MinimumWidth = 6;
-            this.Present.Name = "Present";
-            this.Present.ReadOnly = true;
-            // 
-            // ReadWrite
-            // 
-            this.ReadWrite.HeaderText = "Доступ на чтение/запись";
-            this.ReadWrite.MinimumWidth = 6;
-            this.ReadWrite.Name = "ReadWrite";
-            this.ReadWrite.ReadOnly = true;
-            // 
-            // UserSupervisor
-            // 
-            this.UserSupervisor.HeaderText = "Права доступа к странице";
-            this.UserSupervisor.MinimumWidth = 6;
-            this.UserSupervisor.Name = "UserSupervisor";
-            this.UserSupervisor.ReadOnly = true;
-            // 
             // panel1
             // 
+            this.panel1.Controls.Add(this.buttonThrowOffPresentBit);
+            this.panel1.Controls.Add(this.label3);
+            this.panel1.Controls.Add(this.textBoxNumberInPageTable);
             this.panel1.Controls.Add(this.label1);
             this.panel1.Controls.Add(this.textBoxPageTableEntry);
             this.panel1.Controls.Add(this.labelTableAdress);
@@ -521,6 +499,64 @@
             this.textBoxPID.Size = new System.Drawing.Size(100, 20);
             this.textBoxPID.TabIndex = 0;
             // 
+            // PagePhisicalAdress
+            // 
+            this.PagePhisicalAdress.HeaderText = "Физический адрес страницы (байт начала)";
+            this.PagePhisicalAdress.MinimumWidth = 6;
+            this.PagePhisicalAdress.Name = "PagePhisicalAdress";
+            this.PagePhisicalAdress.ReadOnly = true;
+            // 
+            // Present
+            // 
+            this.Present.HeaderText = "Отображение в память";
+            this.Present.MinimumWidth = 6;
+            this.Present.Name = "Present";
+            this.Present.ReadOnly = true;
+            // 
+            // ReadWrite
+            // 
+            this.ReadWrite.HeaderText = "Доступ на чтение/запись";
+            this.ReadWrite.MinimumWidth = 6;
+            this.ReadWrite.Name = "ReadWrite";
+            this.ReadWrite.ReadOnly = true;
+            // 
+            // UserSupervisor
+            // 
+            this.UserSupervisor.HeaderText = "Права доступа к странице";
+            this.UserSupervisor.MinimumWidth = 6;
+            this.UserSupervisor.Name = "UserSupervisor";
+            this.UserSupervisor.ReadOnly = true;
+            // 
+            // textBoxNumberInPageTable
+            // 
+            this.textBoxNumberInPageTable.BackColor = System.Drawing.SystemColors.ButtonHighlight;
+            this.textBoxNumberInPageTable.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.textBoxNumberInPageTable.Enabled = false;
+            this.textBoxNumberInPageTable.Location = new System.Drawing.Point(272, 78);
+            this.textBoxNumberInPageTable.Name = "textBoxNumberInPageTable";
+            this.textBoxNumberInPageTable.ReadOnly = true;
+            this.textBoxNumberInPageTable.Size = new System.Drawing.Size(49, 20);
+            this.textBoxNumberInPageTable.TabIndex = 11;
+            // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(327, 81);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(94, 13);
+            this.label3.TabIndex = 12;
+            this.label3.Text = "Номер в таблице";
+            // 
+            // buttonThrowOffPresentBit
+            // 
+            this.buttonThrowOffPresentBit.Location = new System.Drawing.Point(16, 115);
+            this.buttonThrowOffPresentBit.Name = "buttonThrowOffPresentBit";
+            this.buttonThrowOffPresentBit.Size = new System.Drawing.Size(86, 43);
+            this.buttonThrowOffPresentBit.TabIndex = 13;
+            this.buttonThrowOffPresentBit.Text = "Сбросить бит отображения";
+            this.buttonThrowOffPresentBit.UseVisualStyleBackColor = true;
+            this.buttonThrowOffPresentBit.Click += new System.EventHandler(this.buttonThrowOffPresentBit_Click);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -562,10 +598,6 @@
         private System.Windows.Forms.GroupBox groupBoxProcess;
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel3;
         private System.Windows.Forms.DataGridView dataGridView2;
-        private System.Windows.Forms.DataGridViewTextBoxColumn PagePhisicalAdress;
-        private System.Windows.Forms.DataGridViewTextBoxColumn Present;
-        private System.Windows.Forms.DataGridViewTextBoxColumn ReadWrite;
-        private System.Windows.Forms.DataGridViewTextBoxColumn UserSupervisor;
         private System.Windows.Forms.Panel panel1;
         private System.Windows.Forms.Label labelTableAdress;
         private System.Windows.Forms.TextBox textBoxTableAdress;
@@ -589,5 +621,12 @@
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.TextBox textBoxPIDtoStart;
         private System.Windows.Forms.Button buttonStartProcess;
+        private System.Windows.Forms.DataGridViewTextBoxColumn PagePhisicalAdress;
+        private System.Windows.Forms.DataGridViewTextBoxColumn Present;
+        private System.Windows.Forms.DataGridViewTextBoxColumn ReadWrite;
+        private System.Windows.Forms.DataGridViewTextBoxColumn UserSupervisor;
+        private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.TextBox textBoxNumberInPageTable;
+        private System.Windows.Forms.Button buttonThrowOffPresentBit;
     }
 }

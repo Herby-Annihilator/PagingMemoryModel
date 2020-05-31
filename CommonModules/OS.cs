@@ -406,7 +406,7 @@ namespace CommonModules
                 //
 
                 // вычисляем физическое местоположение страницы, вызвавшей ошибку
-                int adress = process.PageTable.PageTableEntries[pageNumber].Adress * PageSize;
+                uint adress = (uint)process.PageTable.PageTableEntries[pageNumber].Adress * (uint)PageSize;
                 int ramBlockNumber = 0;
                 for (int j = 0; j < hardware.RAMs.Length; j++)
                 {
@@ -424,6 +424,10 @@ namespace CommonModules
                 {
                     MessageBox.Show("Данные поцесса на диске не найдены. Процесс будет убит.", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     KillProcess(process.PID);
+                }
+                else
+                {
+                    process.PageTable.PageTableEntries[pageNumber].Present = true;
                 }
             }
         }
@@ -654,7 +658,7 @@ namespace CommonModules
         /// <param name="startBitArrayBlock">Начало страницы, номер блока из 32 битов, номер BitArray(я)</param>
         /// <param name="newPageAdress">новый физический адрес страницы</param>
         /// <returns></returns>
-        private bool RestoreProcessPage(ref Process process, int pageIndexInPageTable, ref BitArray[] ram, int startBitArrayBlock, int newPageAdress)
+        private bool RestoreProcessPage(ref Process process, int pageIndexInPageTable, ref BitArray[] ram, int startBitArrayBlock, uint newPageAdress)
         {
             StreamReader reader = new StreamReader(CurrentDirectoryName + "\\" + process.FileName);
             //StreamWriter writer = new StreamWriter(CurrentDirectoryName + "\\" + "tmp.prc");
@@ -684,7 +688,7 @@ namespace CommonModules
                 if (number == pageIndexInPageTable)
                 {
                     string[] bitBlocks = reader.ReadLine().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                    process.PageTable.PageTableEntries[pageIndexInPageTable].Adress = newPageAdress / PageSize;   // потому что номер страницы в общем адресном пространстве
+                    process.PageTable.PageTableEntries[pageIndexInPageTable].Adress = (int)(newPageAdress / PageSize);   // потому что номер страницы в общем адресном пространстве
                     int endBitArrayBlock = startBitArrayBlock + PageSize / (bitDepth / 8);     // 4096 байт / 4 байта = 128 блоков
                     int k = 0;
                     for (int i = startBitArrayBlock; i < endBitArrayBlock; i++)
@@ -733,6 +737,24 @@ namespace CommonModules
                 }
             }
             return null;
+        }
+        /// <summary>
+        /// Сообщает, был ли убит процесс с указанным PID
+        /// </summary>
+        /// <param name="pid">PID процесса</param>
+        /// <returns></returns>
+        public bool IsProcessKilled(int pid)
+        {
+            bool isKilled = true;
+            for (int i = 0; i < processes.Count; i++)
+            {
+                if (processes[i].PID == pid)
+                {
+                    isKilled = false;
+                    break;
+                }
+            }
+            return isKilled;
         }
     }
 
