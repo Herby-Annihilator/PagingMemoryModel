@@ -341,12 +341,13 @@ namespace CommonModules
                 bool ableToRemove = false;
                 List<int> removalCandidates = new List<int>();
                 int removalPage = 0;
+                int removalPageIndex = 0;
                 int workingSetPagesNumber = process.WSClockEntryMirrors.Count;
                 for (int i = 0; i < workingSetPagesNumber; i++)
                 {
                     if (!ableToRemove)
                     {
-                        if (i == pageNumber)
+                        if (process.WSClockEntryMirrors[i].PageTableEntryIndex == pageNumber)   // то такую страницу в расчет не берем, т.к. к ней и обратились
                         { 
                             process.WSClockEntryMirrors[i].Referenced = false;
                             process.WSClockEntryMirrors[i].LastUseTime = process.CurrentVirtualTime;
@@ -357,14 +358,16 @@ namespace CommonModules
                             process.WSClockEntryMirrors[i].Referenced = false;
                             process.WSClockEntryMirrors[i].LastUseTime = process.CurrentVirtualTime;
                         }
-                        else if (process.CurrentVirtualTime - process.WSClockEntryMirrors[i].LastUseTime <= PageMaxAge) // это еще рабочий набор
+                        else if ((process.CurrentVirtualTime - process.WSClockEntryMirrors[i].LastUseTime) <= PageMaxAge) // это еще рабочий набор
                         {
                             removalCandidates.Add(i);
                         }
                         else  // можно удалить
                         {
                             ableToRemove = true;
-                            removalPage = i;
+                            removalPage = process.WSClockEntryMirrors[i].PageTableEntryIndex;
+                            removalPageIndex = i;
+                            break;
                         }
                     }
                     else if (process.WSClockEntryMirrors[i].Referenced == true)
@@ -377,7 +380,12 @@ namespace CommonModules
                 {
                     if (removalCandidates.Count == 0)
                     {
-                        removalPage = 0;
+                        Random random = new Random();
+                        do
+                        {
+                            removalPageIndex = random.Next(0, process.WSClockEntryMirrors.Count - 1);
+                            removalPage = process.WSClockEntryMirrors[removalPageIndex].PageTableEntryIndex;
+                        } while (removalPage == pageNumber);
                     }
                     else
                     {
@@ -386,23 +394,25 @@ namespace CommonModules
                             if (!process.WSClockEntryMirrors[removalCandidates[i]].Modified)
                             {
                                 ableToRemove = true;
-                                removalPage = removalCandidates[i];
+                                removalPage = process.WSClockEntryMirrors[removalCandidates[i]].PageTableEntryIndex;
+                                removalPageIndex = removalCandidates[i];
                                 break;
                             }
                         }
                         if (!ableToRemove)
                         {
-                            removalPage = removalCandidates[0];
+                            removalPage = process.WSClockEntryMirrors[removalCandidates[0]].PageTableEntryIndex;
+                            removalPageIndex = removalCandidates[0];
                         }
                     }
                 }
                 // если страница модифицирована, то ее данные нужно перезаписать на диск
-                if (process.WSClockEntryMirrors[removalPage].Modified == true)
+                if (process.WSClockEntryMirrors[removalPageIndex].Modified == true)
                 {
                     // если страница записана на диск - обновляем данные
-                    if (process.WSClockEntryMirrors[removalPage].WrittenIntoFile)
+                    if (process.WSClockEntryMirrors[removalPageIndex].WrittenIntoFile)
                     {
-                        if (!WritePageToDrive(process.FileName, process.WSClockEntryMirrors[removalPage].PageTableEntry, process.WSClockEntryMirrors[removalPage].PageTableEntryIndex, true))
+                        if (!WritePageToDrive(process.FileName, process.WSClockEntryMirrors[removalPageIndex].PageTableEntry, process.WSClockEntryMirrors[removalPageIndex].PageTableEntryIndex, true))
                         {
                             throw new Exception("Дисковая операция с процессом крашнулась");
                         }
@@ -410,20 +420,20 @@ namespace CommonModules
                     else  // иначе просто пишем в файл
                     {
                         StreamWriter writer = new StreamWriter(CurrentDirectoryName + "\\" + process.FileName, true);
-                        WritePageToDrive(writer, process.WSClockEntryMirrors[removalPage].PageTableEntry, process.WSClockEntryMirrors[removalPage].PageTableEntryIndex);
-                        process.WSClockEntryMirrors[removalPage].WrittenIntoFile = true;
+                        WritePageToDrive(writer, process.WSClockEntryMirrors[removalPageIndex].PageTableEntry, process.WSClockEntryMirrors[removalPageIndex].PageTableEntryIndex);
+                        process.WSClockEntryMirrors[removalPageIndex].WrittenIntoFile = true;
                         writer.Close();
                     }
                 }
                 // в записи "удаляемой" страницы выставляем бит отображения в 0. Больше с этой записью ничего делать не надо
-                process.PageTable.PageTableEntries[process.WSClockEntryMirrors[removalPage].PageTableEntryIndex].Present = false;
+                process.PageTable.PageTableEntries[process.WSClockEntryMirrors[removalPageIndex].PageTableEntryIndex].Present = false;
 
                 // В ту запись (номер в таблице страниц), обращение к которой вызвало ошибку нужно записать адрес "удаленной страницы"
                 // Удаляемую страницу нужно записать на диск, если нужно, и в таблице страниц выставить бит отображения в 0
-                //int oldAdress = process.PageTable.PageTableEntries[process.WSClockEntryMirrors[removalPage].PageTableEntryIndex].Adress;
+                int oldAdress = process.PageTable.PageTableEntries[pageNumber].Adress;
 
                 // вычисляем физическое местоположение страницы, в которую будем писать новые данные
-                uint adress = (uint)process.PageTable.PageTableEntries[removalPage].Adress * (uint)PageSize;
+                uint adress = (uint)process.PageTable.PageTableEntries[removalPageIndex].Adress * (uint)PageSize;
                 int ramBlockNumber = 0;
                 for (int j = 0; j < hardware.RAMs.Length; j++)
                 {
@@ -445,8 +455,8 @@ namespace CommonModules
                 else
                 {
                     process.PageTable.PageTableEntries[pageNumber].Present = true;
-                    // process.PageTable.PageTableEntries[process.WSClockEntryMirrors[removalPage].PageTableEntryIndex].Adress =  // костыль, но так нужно, чтобы адрес "удаляемой" страницы не был забыт
-                    //process.PageTable.PageTableEntries[process.WSClockEntryMirrors[removalPage].PageTableEntryIndex].Adress = oldAdress;
+                    // костыль, но так нужно, чтобы адрес "удаляемой" страницы не был забыт
+                    process.PageTable.PageTableEntries[process.WSClockEntryMirrors[removalPageIndex].PageTableEntryIndex].Adress = oldAdress;
                 }
             }
         }
