@@ -87,6 +87,7 @@ namespace SystemModel
                 button1.Enabled = false;
                 buttonThrowOffPresentBit.Enabled = false;
                 buttonThrowOffAccesedBit.Enabled = false;
+                buttonThrowOffModifiedBit.Enabled = false;
 
                 textBox1.Clear();
             }
@@ -210,6 +211,7 @@ namespace SystemModel
                     button1.Enabled = true;
                     buttonThrowOffPresentBit.Enabled = true;
                     buttonThrowOffAccesedBit.Enabled = true;
+                    buttonThrowOffModifiedBit.Enabled = true;
                     textBox1.Text = dataGridView2.Rows[e.RowIndex].Cells[0].Value.ToString();
                     Process process = os.GetCheckedProcess(Convert.ToInt32(textBoxPID.Text));
                     textBoxPageTableEntry.Text = os.GetBitArrayStringFormat(process.PageTable.PageTableEntries[e.RowIndex].Entry);
@@ -284,6 +286,14 @@ namespace SystemModel
                     {
                         os.KillProcess(process.PID);
                         DataGridVeiwUpdate();
+
+                        dataGridView2.Rows.Clear();
+                        textBoxPID.Clear();
+                        textBoxTableAdress.Clear();
+                        textBox1.Clear();
+                        textBoxNumberInPageTable.Clear();
+                        textBoxPageTableEntry.Clear();
+                        textBoxPIDtoStart.Clear();
                     }
                     else
                     {
@@ -372,6 +382,7 @@ namespace SystemModel
 
                 UpdateDataGridView2();
                 TextBoxPageStatusUpdate(process, Convert.ToInt32(textBoxNumberInPageTable.Text));
+                textBoxPageTableEntry.Text = os.GetBitArrayStringFormat(process.PageTable.PageTableEntries[Convert.ToInt32(textBoxNumberInPageTable.Text)].Entry);
 
                 textBoxListing.Text = "Обработка ошибки отсутствия страницы " + isPageFault.ToString() + "\r\n";
                 if (isPageFault)
@@ -573,8 +584,10 @@ namespace SystemModel
         private void buttonThrowOffPresentBit_Click(object sender, EventArgs e)
         {
             Process process = os.GetCheckedProcess(Convert.ToInt32(textBoxPID.Text));
-            process.PageTable.PageTableEntries[Convert.ToInt32(textBoxNumberInPageTable.Text)].Present = false;
-            dataGridView2.Rows[Convert.ToInt32(textBoxNumberInPageTable.Text)].Cells[1].Value = process.PageTable.PageTableEntries[Convert.ToInt32(textBoxNumberInPageTable.Text)].Present;
+            process.PageTable.PageTableEntries[Convert.ToInt32(textBoxNumberInPageTable.Text)].Present = 
+                !process.PageTable.PageTableEntries[Convert.ToInt32(textBoxNumberInPageTable.Text)].Present;
+            dataGridView2.Rows[Convert.ToInt32(textBoxNumberInPageTable.Text)].Cells[1].Value = 
+                process.PageTable.PageTableEntries[Convert.ToInt32(textBoxNumberInPageTable.Text)].Present;
             textBoxPageTableEntry.Text = os.GetBitArrayStringFormat(process.PageTable.PageTableEntries[Convert.ToInt32(textBoxNumberInPageTable.Text)].Entry);
         }
         /// <summary>
@@ -585,7 +598,20 @@ namespace SystemModel
         private void buttonThrowOffAccesedBit_Click(object sender, EventArgs e)
         {
             Process process = os.GetCheckedProcess(Convert.ToInt32(textBoxPID.Text));
-            process.PageTable.PageTableEntries[Convert.ToInt32(textBoxNumberInPageTable.Text)].Accessed = !process.PageTable.PageTableEntries[Convert.ToInt32(textBoxNumberInPageTable.Text)].Accessed;
+            process.PageTable.PageTableEntries[Convert.ToInt32(textBoxNumberInPageTable.Text)].Accessed = 
+                !process.PageTable.PageTableEntries[Convert.ToInt32(textBoxNumberInPageTable.Text)].Accessed;
+            textBoxPageTableEntry.Text = os.GetBitArrayStringFormat(process.PageTable.PageTableEntries[Convert.ToInt32(textBoxNumberInPageTable.Text)].Entry);
+        }
+        /// <summary>
+        /// Сбросить или восстановить бит изменения
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void buttonThrowOffModifiedBit_Click(object sender, EventArgs e)
+        {
+            Process process = os.GetCheckedProcess(Convert.ToInt32(textBoxPID.Text));
+            process.PageTable.PageTableEntries[Convert.ToInt32(textBoxNumberInPageTable.Text)].Dirty =
+                !process.PageTable.PageTableEntries[Convert.ToInt32(textBoxNumberInPageTable.Text)].Dirty;
             textBoxPageTableEntry.Text = os.GetBitArrayStringFormat(process.PageTable.PageTableEntries[Convert.ToInt32(textBoxNumberInPageTable.Text)].Entry);
         }
     }

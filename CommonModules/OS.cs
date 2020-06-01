@@ -375,18 +375,25 @@ namespace CommonModules
                 }
                 if (!ableToRemove)
                 {
-                    for (int i = 0; i < removalCandidates.Count; i++)
+                    if (removalCandidates.Count == 0)
                     {
-                        if (!process.WSClockEntryMirrors[removalCandidates[i]].Modified)
-                        {
-                            ableToRemove = true;
-                            removalPage = removalCandidates[i];
-                            break;
-                        }
+                        removalPage = 0;
                     }
-                    if (!ableToRemove)
+                    else
                     {
-                        removalPage = removalCandidates[0];
+                        for (int i = 0; i < removalCandidates.Count; i++)
+                        {
+                            if (!process.WSClockEntryMirrors[removalCandidates[i]].Modified)
+                            {
+                                ableToRemove = true;
+                                removalPage = removalCandidates[i];
+                                break;
+                            }
+                        }
+                        if (!ableToRemove)
+                        {
+                            removalPage = removalCandidates[0];
+                        }
                     }
                 }
                 // если страница модифицирована, то ее данные нужно перезаписать на диск
@@ -408,16 +415,15 @@ namespace CommonModules
                         writer.Close();
                     }
                 }
-                //
-                // удаляем страницу из памяти
-                //
-                process.WSClockEntryMirrors.RemoveAt(removalPage);
-                //
-                // на ее место нужно поставить нужную страницу
-                //
+                // в записи "удаляемой" страницы выставляем бит отображения в 0. Больше с этой записью ничего делать не надо
+                process.PageTable.PageTableEntries[process.WSClockEntryMirrors[removalPage].PageTableEntryIndex].Present = false;
 
-                // вычисляем физическое местоположение страницы, вызвавшей ошибку
-                uint adress = (uint)process.PageTable.PageTableEntries[pageNumber].Adress * (uint)PageSize;
+                // В ту запись (номер в таблице страниц), обращение к которой вызвало ошибку нужно записать адрес "удаленной страницы"
+                // Удаляемую страницу нужно записать на диск, если нужно, и в таблице страниц выставить бит отображения в 0
+                //int oldAdress = process.PageTable.PageTableEntries[process.WSClockEntryMirrors[removalPage].PageTableEntryIndex].Adress;
+
+                // вычисляем физическое местоположение страницы, в которую будем писать новые данные
+                uint adress = (uint)process.PageTable.PageTableEntries[removalPage].Adress * (uint)PageSize;
                 int ramBlockNumber = 0;
                 for (int j = 0; j < hardware.RAMs.Length; j++)
                 {
@@ -439,6 +445,8 @@ namespace CommonModules
                 else
                 {
                     process.PageTable.PageTableEntries[pageNumber].Present = true;
+                    // process.PageTable.PageTableEntries[process.WSClockEntryMirrors[removalPage].PageTableEntryIndex].Adress =  // костыль, но так нужно, чтобы адрес "удаляемой" страницы не был забыт
+                    //process.PageTable.PageTableEntries[process.WSClockEntryMirrors[removalPage].PageTableEntryIndex].Adress = oldAdress;
                 }
             }
         }
@@ -598,7 +606,7 @@ namespace CommonModules
                         else
                         {
                             writer.WriteLine("[ " + number + " ]");
-                            writer.Write(reader.ReadLine());
+                            writer.WriteLine(reader.ReadLine());
                         }
                     }
                     else
@@ -665,9 +673,9 @@ namespace CommonModules
         /// Если формат неверен, то выкинет исключение.
         /// </summary>
         /// <param name="process">процесс, для которого производится восстановление</param>
-        /// <param name="pageIndexInPageTable">номер записи, которая отвечает за восстанавливаюмую страницу</param>
+        /// <param name="pageIndexInPageTable">номер записи, в таблице страниц, котрая вызвала ошибку</param>
         /// <param name="ram">физическая память, нужен соответсвующий массив BitArray[]</param>
-        /// <param name="startBitArrayBlock">Начало страницы, номер блока из 32 битов, номер BitArray(я)</param>
+        /// <param name="startBitArrayBlock">Начало страницы, в которую будем восстанавливать данные, номер блока из 32 битов, номер BitArray(я)</param>
         /// <param name="newPageAdress">новый физический адрес страницы</param>
         /// <returns></returns>
         private bool RestoreProcessPage(ref Process process, int pageIndexInPageTable, ref BitArray[] ram, int startBitArrayBlock, uint newPageAdress)
@@ -701,6 +709,7 @@ namespace CommonModules
                 {
                     string[] bitBlocks = reader.ReadLine().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
                     process.PageTable.PageTableEntries[pageIndexInPageTable].Adress = (int)(newPageAdress / PageSize);   // потому что номер страницы в общем адресном пространстве
+                    process.PageTable.PageTableEntries[pageIndexInPageTable].Present = true;
                     int endBitArrayBlock = startBitArrayBlock + PageSize / (bitDepth / 8);     // 4096 байт / 4 байта = 128 блоков
                     int k = 0;
                     for (int i = startBitArrayBlock; i < endBitArrayBlock; i++)
@@ -718,8 +727,9 @@ namespace CommonModules
                         }
                         k++;
                     }
-                    process.WSClockEntryMirrors.Add(new WSClockEntryMirror(ref process.PageTable.PageTableEntries[pageIndexInPageTable], process.CurrentVirtualTime, pageIndexInPageTable));
-                    process.WSClockEntryMirrors[process.WSClockEntryMirrors.Count - 1].WrittenIntoFile = true;
+                    process.WSClockEntryMirrors[pageIndexInPageTable].WrittenIntoFile = true;
+                    process.WSClockEntryMirrors[pageIndexInPageTable].Modified = false;
+                    process.WSClockEntryMirrors[pageIndexInPageTable].Referenced = true;
                     isRead = true;
                 }
                 else

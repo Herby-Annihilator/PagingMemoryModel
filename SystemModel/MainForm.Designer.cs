@@ -40,6 +40,8 @@
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
             this.tableLayoutPanel2 = new System.Windows.Forms.TableLayoutPanel();
             this.groupBoxOS = new System.Windows.Forms.GroupBox();
+            this.label4 = new System.Windows.Forms.Label();
+            this.textBoxPageStatus = new System.Windows.Forms.TextBox();
             this.label2 = new System.Windows.Forms.Label();
             this.textBoxPIDtoStart = new System.Windows.Forms.TextBox();
             this.buttonStartProcess = new System.Windows.Forms.Button();
@@ -53,7 +55,12 @@
             this.groupBoxProcess = new System.Windows.Forms.GroupBox();
             this.tableLayoutPanel3 = new System.Windows.Forms.TableLayoutPanel();
             this.dataGridView2 = new System.Windows.Forms.DataGridView();
+            this.PagePhisicalAdress = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.Present = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.ReadWrite = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.UserSupervisor = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.panel1 = new System.Windows.Forms.Panel();
+            this.buttonThrowOffAccesedBit = new System.Windows.Forms.Button();
             this.buttonThrowOffPresentBit = new System.Windows.Forms.Button();
             this.label3 = new System.Windows.Forms.Label();
             this.textBoxNumberInPageTable = new System.Windows.Forms.TextBox();
@@ -65,13 +72,7 @@
             this.button1 = new System.Windows.Forms.Button();
             this.labelPID = new System.Windows.Forms.Label();
             this.textBoxPID = new System.Windows.Forms.TextBox();
-            this.PagePhisicalAdress = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.Present = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.ReadWrite = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.UserSupervisor = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.buttonThrowOffAccesedBit = new System.Windows.Forms.Button();
-            this.textBoxPageStatus = new System.Windows.Forms.TextBox();
-            this.label4 = new System.Windows.Forms.Label();
+            this.buttonThrowOffModifiedBit = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             this.tableLayoutPanel1.SuspendLayout();
             this.tableLayoutPanel2.SuspendLayout();
@@ -224,6 +225,30 @@
             this.groupBoxOS.TabStop = false;
             this.groupBoxOS.Text = "Отдать команду ОС";
             // 
+            // label4
+            // 
+            this.label4.AutoSize = true;
+            this.label4.Location = new System.Drawing.Point(7, 333);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(172, 13);
+            this.label4.TabIndex = 17;
+            this.label4.Text = "Состояние выбранной страницы";
+            // 
+            // textBoxPageStatus
+            // 
+            this.textBoxPageStatus.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.textBoxPageStatus.BackColor = System.Drawing.SystemColors.ButtonHighlight;
+            this.textBoxPageStatus.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.textBoxPageStatus.Enabled = false;
+            this.textBoxPageStatus.Location = new System.Drawing.Point(6, 347);
+            this.textBoxPageStatus.Multiline = true;
+            this.textBoxPageStatus.Name = "textBoxPageStatus";
+            this.textBoxPageStatus.ReadOnly = true;
+            this.textBoxPageStatus.Size = new System.Drawing.Size(597, 85);
+            this.textBoxPageStatus.TabIndex = 16;
+            // 
             // label2
             // 
             this.label2.AutoSize = true;
@@ -371,8 +396,41 @@
             this.dataGridView2.TabIndex = 0;
             this.dataGridView2.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridView2_CellClick);
             // 
+            // PagePhisicalAdress
+            // 
+            this.PagePhisicalAdress.HeaderText = "Физический адрес страницы (байт начала)";
+            this.PagePhisicalAdress.MinimumWidth = 6;
+            this.PagePhisicalAdress.Name = "PagePhisicalAdress";
+            this.PagePhisicalAdress.ReadOnly = true;
+            this.PagePhisicalAdress.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
+            // 
+            // Present
+            // 
+            this.Present.HeaderText = "Отображение в память";
+            this.Present.MinimumWidth = 6;
+            this.Present.Name = "Present";
+            this.Present.ReadOnly = true;
+            this.Present.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
+            // 
+            // ReadWrite
+            // 
+            this.ReadWrite.HeaderText = "Доступ на чтение/запись";
+            this.ReadWrite.MinimumWidth = 6;
+            this.ReadWrite.Name = "ReadWrite";
+            this.ReadWrite.ReadOnly = true;
+            this.ReadWrite.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
+            // 
+            // UserSupervisor
+            // 
+            this.UserSupervisor.HeaderText = "Права доступа к странице";
+            this.UserSupervisor.MinimumWidth = 6;
+            this.UserSupervisor.Name = "UserSupervisor";
+            this.UserSupervisor.ReadOnly = true;
+            this.UserSupervisor.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
+            // 
             // panel1
             // 
+            this.panel1.Controls.Add(this.buttonThrowOffModifiedBit);
             this.panel1.Controls.Add(this.buttonThrowOffAccesedBit);
             this.panel1.Controls.Add(this.buttonThrowOffPresentBit);
             this.panel1.Controls.Add(this.label3);
@@ -391,14 +449,25 @@
             this.panel1.Size = new System.Drawing.Size(598, 245);
             this.panel1.TabIndex = 1;
             // 
+            // buttonThrowOffAccesedBit
+            // 
+            this.buttonThrowOffAccesedBit.Enabled = false;
+            this.buttonThrowOffAccesedBit.Location = new System.Drawing.Point(173, 115);
+            this.buttonThrowOffAccesedBit.Name = "buttonThrowOffAccesedBit";
+            this.buttonThrowOffAccesedBit.Size = new System.Drawing.Size(148, 43);
+            this.buttonThrowOffAccesedBit.TabIndex = 14;
+            this.buttonThrowOffAccesedBit.Text = "Сбросить/Восстановить бит обращения";
+            this.buttonThrowOffAccesedBit.UseVisualStyleBackColor = true;
+            this.buttonThrowOffAccesedBit.Click += new System.EventHandler(this.buttonThrowOffAccesedBit_Click);
+            // 
             // buttonThrowOffPresentBit
             // 
             this.buttonThrowOffPresentBit.Enabled = false;
             this.buttonThrowOffPresentBit.Location = new System.Drawing.Point(16, 115);
             this.buttonThrowOffPresentBit.Name = "buttonThrowOffPresentBit";
-            this.buttonThrowOffPresentBit.Size = new System.Drawing.Size(86, 43);
+            this.buttonThrowOffPresentBit.Size = new System.Drawing.Size(139, 43);
             this.buttonThrowOffPresentBit.TabIndex = 13;
-            this.buttonThrowOffPresentBit.Text = "Сбросить бит отображения";
+            this.buttonThrowOffPresentBit.Text = "Сбросить/Восстановить бит отображения";
             this.buttonThrowOffPresentBit.UseVisualStyleBackColor = true;
             this.buttonThrowOffPresentBit.Click += new System.EventHandler(this.buttonThrowOffPresentBit_Click);
             // 
@@ -496,72 +565,16 @@
             this.textBoxPID.Size = new System.Drawing.Size(100, 20);
             this.textBoxPID.TabIndex = 0;
             // 
-            // PagePhisicalAdress
+            // buttonThrowOffModifiedBit
             // 
-            this.PagePhisicalAdress.HeaderText = "Физический адрес страницы (байт начала)";
-            this.PagePhisicalAdress.MinimumWidth = 6;
-            this.PagePhisicalAdress.Name = "PagePhisicalAdress";
-            this.PagePhisicalAdress.ReadOnly = true;
-            this.PagePhisicalAdress.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
-            // 
-            // Present
-            // 
-            this.Present.HeaderText = "Отображение в память";
-            this.Present.MinimumWidth = 6;
-            this.Present.Name = "Present";
-            this.Present.ReadOnly = true;
-            this.Present.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
-            // 
-            // ReadWrite
-            // 
-            this.ReadWrite.HeaderText = "Доступ на чтение/запись";
-            this.ReadWrite.MinimumWidth = 6;
-            this.ReadWrite.Name = "ReadWrite";
-            this.ReadWrite.ReadOnly = true;
-            this.ReadWrite.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
-            // 
-            // UserSupervisor
-            // 
-            this.UserSupervisor.HeaderText = "Права доступа к странице";
-            this.UserSupervisor.MinimumWidth = 6;
-            this.UserSupervisor.Name = "UserSupervisor";
-            this.UserSupervisor.ReadOnly = true;
-            this.UserSupervisor.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
-            // 
-            // buttonThrowOffAccesedBit
-            // 
-            this.buttonThrowOffAccesedBit.Enabled = false;
-            this.buttonThrowOffAccesedBit.Location = new System.Drawing.Point(118, 115);
-            this.buttonThrowOffAccesedBit.Name = "buttonThrowOffAccesedBit";
-            this.buttonThrowOffAccesedBit.Size = new System.Drawing.Size(148, 43);
-            this.buttonThrowOffAccesedBit.TabIndex = 14;
-            this.buttonThrowOffAccesedBit.Text = "Сбросить/Восстановить бит обращения";
-            this.buttonThrowOffAccesedBit.UseVisualStyleBackColor = true;
-            this.buttonThrowOffAccesedBit.Click += new System.EventHandler(this.buttonThrowOffAccesedBit_Click);
-            // 
-            // textBoxPageStatus
-            // 
-            this.textBoxPageStatus.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.textBoxPageStatus.BackColor = System.Drawing.SystemColors.ButtonHighlight;
-            this.textBoxPageStatus.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.textBoxPageStatus.Enabled = false;
-            this.textBoxPageStatus.Location = new System.Drawing.Point(6, 347);
-            this.textBoxPageStatus.Multiline = true;
-            this.textBoxPageStatus.Name = "textBoxPageStatus";
-            this.textBoxPageStatus.ReadOnly = true;
-            this.textBoxPageStatus.Size = new System.Drawing.Size(597, 85);
-            this.textBoxPageStatus.TabIndex = 16;
-            // 
-            // label4
-            // 
-            this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(7, 333);
-            this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(172, 13);
-            this.label4.TabIndex = 17;
-            this.label4.Text = "Состояние выбранной страницы";
+            this.buttonThrowOffModifiedBit.Enabled = false;
+            this.buttonThrowOffModifiedBit.Location = new System.Drawing.Point(346, 115);
+            this.buttonThrowOffModifiedBit.Name = "buttonThrowOffModifiedBit";
+            this.buttonThrowOffModifiedBit.Size = new System.Drawing.Size(148, 43);
+            this.buttonThrowOffModifiedBit.TabIndex = 15;
+            this.buttonThrowOffModifiedBit.Text = "Сбросить/Восстановить бит изменения";
+            this.buttonThrowOffModifiedBit.UseVisualStyleBackColor = true;
+            this.buttonThrowOffModifiedBit.Click += new System.EventHandler(this.buttonThrowOffModifiedBit_Click);
             // 
             // MainForm
             // 
@@ -633,5 +646,6 @@
         private System.Windows.Forms.Button buttonThrowOffAccesedBit;
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.TextBox textBoxPageStatus;
+        private System.Windows.Forms.Button buttonThrowOffModifiedBit;
     }
 }
